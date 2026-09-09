@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
     
-    <title>Pro FPS - Admin Panel (Aimbot)</title>
+    <title>Pro FPS - ADMIN V2.0</title>
     <style>
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; -webkit-user-select: none;}
@@ -105,7 +104,7 @@
 
     <div id="start-screen">
         <h1 style="color: #ff0000; text-shadow: 0 0 15px #ff0000; margin-bottom: 5px;">PRO FPS - ADMIN</h1>
-        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">نسخة المدير (Aimbot)</p>
+        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">تفعيل الأيم بوت (Aimbot)</p>
         <button class="btn-start-fs" id="btn-fs">تفعيل الدخول</button>
     </div>
 
@@ -122,6 +121,7 @@
     <div id="lobby-ui">
         <div class="panel left-panel">
             <h3 style="margin: 0; color: #ff0000; text-align: center; font-size: min(18px, 3vh);">الأدمن</h3>
+            <!-- بروفايل الأدمن الافتراضي -->
             <input type="text" id="my-name" value="Admin" placeholder="اسمك">
             <div class="color-picker">القميص: <input type="color" id="c-shirt" value="#ff0000"></div>
             <div class="color-picker">السروال: <input type="color" id="c-pants" value="#111111"></div>
@@ -187,7 +187,7 @@
 
         <div id="btn-heal" class="btn-game">💉<br><small>علاج</small></div>
         <div id="btn-gloo" class="btn-game">🧊<br><small>ثلجة</small></div>
-        <div id="btn-shoot" class="btn-game">🔥<br>نار (Aimbot)</div>
+        <div id="btn-shoot" class="btn-game">🔥<br>نار</div>
         
         <div id="kill-feed"></div>
     </div>
@@ -343,7 +343,14 @@
 
         function initNetwork() {
             myId = 'fps_' + Math.random().toString(36).substr(2, 5);
-            peer = new Peer(myId);
+            peer = new Peer(myId, {
+                config: {
+                    'iceServers': [
+                        { url: 'stun:stun.l.google.com:19302' },
+                        { url: 'stun:stun1.l.google.com:19302' }
+                    ]
+                }
+            });
             window.appPeer = peer;
 
             peer.on('open', (id) => { document.getElementById('my-id-display').innerText = id; });
@@ -351,14 +358,15 @@
             peer.on('connection', (conn) => {
                 isHost = true; connections[conn.peer] = conn; setupConnectionEvents(conn);
                 playersData[conn.peer] = { team: 'B', hp: MAX_HP, profile: { name: 'ضيف', shirt: '#fff', pants: '#fff', hair: '#fff' }, mesh: null, lastShot: 0 };
-                updateLobbyUI();
+                setTimeout(() => { updateLobbyUI(); broadcastLobbyState(); }, 1000);
             });
 
             document.getElementById('btn-join').addEventListener('click', () => {
                 const friendId = document.getElementById('friend-id').value;
                 if(friendId) {
+                    document.getElementById('btn-join').innerText = "جارِ الاتصال...";
                     isHost = false; document.getElementById('host-panel').style.display = 'none'; document.getElementById('join-section').style.display = 'none';
-                    let conn = peer.connect(friendId); connections[friendId] = conn; setupConnectionEvents(conn);
+                    let conn = peer.connect(friendId, { reliable: true }); connections[friendId] = conn; setupConnectionEvents(conn);
                 }
             });
 
@@ -386,63 +394,78 @@
         function broadcast(data) { for(let id in connections) connections[id].send(data); }
 
         function setupConnectionEvents(conn) {
-            conn.on('open', () => { conn.send({ type: 'PROFILE_UPDATE', profile: myProfile }); });
+            conn.on('open', () => { 
+                if(!isHost) {
+                    document.getElementById('host-panel').style.display = 'none'; 
+                    document.getElementById('join-section').innerHTML = '<p style="color:#ff0000; font-weight:bold; margin:0;">✔ متصل (مخفي)!</p>';
+                }
+                setTimeout(() => {
+                    conn.send({ type: 'PROFILE_UPDATE', profile: myProfile }); 
+                    if(!isHost) conn.send({ type: 'REQUEST_LOBBY_STATE' });
+                }, 500);
+            });
 
             conn.on('data', (data) => {
-                if (data.type === 'PROFILE_UPDATE') {
-                    if (!playersData[conn.peer]) playersData[conn.peer] = { team: 'B', hp: MAX_HP, lastShot: 0 };
-                    playersData[conn.peer].profile = data.profile;
-                    if (!playersData[conn.peer].mesh) {
-                        playersData[conn.peer].mesh = createMinecraftCharacter(data.profile);
-                        scene.add(playersData[conn.peer].mesh);
-                    } else applyProfileToMesh(playersData[conn.peer].mesh, data.profile);
-                    organizeLobbyPositions(); updateLobbyUI();
-                    if (isHost) broadcastLobbyState();
-                }
-                else if (data.type === 'LOBBY_STATE' && !isHost) syncLobbyState(data.state);
-                else if (data.type === 'START_ROUND') {
-                    gameMode = data.mode; myTeam = data.myTeam; teamScoreA = data.scoreA; teamScoreB = data.scoreB; currentRound = data.round;
-                    buildMap(data.map, data.themeIdx); switchToGameScene(data.spawnIndex, data.themeIdx);
-                }
-                else if (data.type === 'ROUND_OVER') handleRoundOver(data.winnerTeam, data.scoreA, data.scoreB, data.matchOver);
-                else if (data.type === 'BACK_TO_LOBBY') returnToLobby();
-                else if (data.type === 'MOVE') {
-                    if (playersData[conn.peer] && playersData[conn.peer].mesh) {
-                        playersData[conn.peer].mesh.position.set(data.pos.x, 0, data.pos.z);
-                        playersData[conn.peer].mesh.rotation.y = data.rot;
-                        animateCharacter(playersData[conn.peer].mesh, data.isMoving, performance.now());
+                try {
+                    if (data.type === 'REQUEST_LOBBY_STATE' && isHost) broadcastLobbyState();
+                    else if (data.type === 'PROFILE_UPDATE') {
+                        if (!playersData[conn.peer]) playersData[conn.peer] = { team: 'B', hp: MAX_HP, lastShot: 0 };
+                        playersData[conn.peer].profile = data.profile;
+                        if (!playersData[conn.peer].mesh) {
+                            playersData[conn.peer].mesh = createMinecraftCharacter(data.profile);
+                            if(scene) scene.add(playersData[conn.peer].mesh);
+                        } else applyProfileToMesh(playersData[conn.peer].mesh, data.profile);
+                        organizeLobbyPositions(); updateLobbyUI();
+                        if (isHost) broadcastLobbyState();
                     }
-                }
-                else if (data.type === 'BULLET_FIRED') {
-                    drawBullet(data.start, data.end);
-                    if(window.sfx && window.sfx.playShoot) window.sfx.playShoot(); 
-                    if(playersData[conn.peer]) playersData[conn.peer].lastShot = performance.now(); 
-                }
-                else if (data.type === 'GLOO_WALL') {
-                    placeGlooWallLocally(new THREE.Vector3(data.pos.x, data.pos.y, data.pos.z), data.rot);
-                    if(window.sfx && window.sfx.playGloo) window.sfx.playGloo(); 
-                }
-                else if (data.type === 'HIT') {
-                    if(myHp <= 0) return; 
-                    myHp -= data.damage; updateHUD();
-                    if(window.sfx && window.sfx.playDamage) window.sfx.playDamage();
+                    else if (data.type === 'LOBBY_STATE' && !isHost) {
+                        syncLobbyState(data.state);
+                        conn.send({ type: 'PROFILE_UPDATE', profile: myProfile });
+                    }
+                    else if (data.type === 'START_ROUND') {
+                        gameMode = data.mode; myTeam = data.myTeam; teamScoreA = data.scoreA; teamScoreB = data.scoreB; currentRound = data.round;
+                        buildMap(data.map, data.themeIdx); switchToGameScene(data.spawnIndex, data.themeIdx);
+                    }
+                    else if (data.type === 'ROUND_OVER') handleRoundOver(data.winnerTeam, data.scoreA, data.scoreB, data.matchOver);
+                    else if (data.type === 'BACK_TO_LOBBY') returnToLobby();
+                    else if (data.type === 'MOVE') {
+                        if (playersData[conn.peer] && playersData[conn.peer].mesh) {
+                            playersData[conn.peer].mesh.position.set(data.pos.x, 0, data.pos.z);
+                            playersData[conn.peer].mesh.rotation.y = data.rot;
+                            animateCharacter(playersData[conn.peer].mesh, data.isMoving, performance.now());
+                        }
+                    }
+                    else if (data.type === 'BULLET_FIRED') {
+                        drawBullet(data.start, data.end);
+                        if(window.sfx && window.sfx.playShoot) window.sfx.playShoot(); 
+                        if(playersData[conn.peer]) playersData[conn.peer].lastShot = performance.now(); 
+                    }
+                    else if (data.type === 'GLOO_WALL') {
+                        placeGlooWallLocally(new THREE.Vector3(data.pos.x, data.pos.y, data.pos.z), data.rot);
+                        if(window.sfx && window.sfx.playGloo) window.sfx.playGloo(); 
+                    }
+                    else if (data.type === 'HIT') {
+                        if(myHp <= 0) return; 
+                        myHp -= data.damage; updateHUD();
+                        if(window.sfx && window.sfx.playDamage) window.sfx.playDamage();
 
-                    if (myHp <= 0) {
-                        if(!isHost) conn.send({ type: 'I_DIED', team: myTeam });
-                        broadcast({ type: 'DEATH_EVENT', killerId: conn.peer, victimName: myProfile.name, headshot: data.headshot });
-                        addKillFeedMsg(playersData[conn.peer].profile.name, myProfile.name, data.headshot);
-                        handleDeath();
+                        if (myHp <= 0) {
+                            if(!isHost) conn.send({ type: 'I_DIED', team: myTeam });
+                            broadcast({ type: 'DEATH_EVENT', killerId: conn.peer, victimName: myProfile.name, headshot: data.headshot });
+                            addKillFeedMsg(playersData[conn.peer].profile.name, myProfile.name, data.headshot);
+                            handleDeath();
+                        }
                     }
-                }
-                else if (data.type === 'I_DIED' && isHost) {
-                    if (data.team === 'A') aliveA--; else aliveB--;
-                    checkRoundEnd();
-                }
-                else if (data.type === 'DEATH_EVENT') {
-                    let kName = data.killerId === 'bot' ? 'روبوت' : (playersData[data.killerId]?.profile?.name || 'مجهول');
-                    if (data.killerId === myId) kName = myProfile.name;
-                    addKillFeedMsg(kName, data.victimName, data.headshot);
-                }
+                    else if (data.type === 'I_DIED' && isHost) {
+                        if (data.team === 'A') aliveA--; else aliveB--;
+                        checkRoundEnd();
+                    }
+                    else if (data.type === 'DEATH_EVENT') {
+                        let kName = data.killerId === 'bot' ? 'روبوت' : (playersData[data.killerId]?.profile?.name || 'مجهول');
+                        if (data.killerId === myId) kName = myProfile.name;
+                        addKillFeedMsg(kName, data.victimName, data.headshot);
+                    }
+                } catch(e) {}
             });
         }
 
@@ -459,7 +482,7 @@
                 if (!playersData[id]) playersData[id] = { hp: MAX_HP, mesh: createMinecraftCharacter(state[id].profile), lastShot: 0 };
                 playersData[id].team = state[id].team; playersData[id].profile = state[id].profile;
                 applyProfileToMesh(playersData[id].mesh, state[id].profile);
-                if (!playersData[id].mesh.parent) scene.add(playersData[id].mesh);
+                if (scene && !playersData[id].mesh.parent) scene.add(playersData[id].mesh);
             }
             organizeLobbyPositions();
         }
@@ -848,7 +871,7 @@
             raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
             let endPos = new THREE.Vector3();
 
-            // سكربت الأيم بوت (Aimbot) المخصص للأدمن 🎯
+            // --- سكربت الأيم بوت (ADMIN) ---
             let aimbotTargetId = null;
             let aimbotTargetMesh = null;
             let aimbotTargetPos = new THREE.Vector3();
@@ -868,14 +891,10 @@
                         let dist = camera.position.distanceTo(headPos);
                         let dir = headPos.clone().sub(camera.position).normalize();
                         
-                        // التحقق مما إذا كان الهدف مكشوفاً
                         let ray = new THREE.Raycaster(camera.position, dir, 0, dist);
                         if(ray.intersectObjects(walls, true).length === 0) {
                             if(dist < minDist) {
-                                minDist = dist;
-                                aimbotTargetId = id;
-                                aimbotTargetMesh = head;
-                                aimbotTargetPos.copy(headPos);
+                                minDist = dist; aimbotTargetId = id; aimbotTargetMesh = head; aimbotTargetPos.copy(headPos);
                             }
                         }
                     }
@@ -885,15 +904,10 @@
             let hitPlayerId = null; let dmgAmount = 5; let isHeadshot = false;
 
             if (aimbotTargetId) {
-                // تفعيل الايم بوت (الالتفاف الفوري والضربة القاتلة 90 دمج)
                 camera.lookAt(aimbotTargetPos);
-                pitch = camera.rotation.x;
-                yaw = camera.rotation.y;
-                
+                pitch = camera.rotation.x; yaw = camera.rotation.y;
                 endPos.copy(aimbotTargetPos);
-                hitPlayerId = aimbotTargetId;
-                dmgAmount = 90;
-                isHeadshot = true;
+                hitPlayerId = aimbotTargetId; dmgAmount = 90; isHeadshot = true;
 
                 const origColor = aimbotTargetMesh.material.color.getHex();
                 aimbotTargetMesh.material.color.setHex(0xff0000);
@@ -902,7 +916,6 @@
                 showFloatingDamage(dmgAmount, endPos);
             } 
             else {
-                // في حال كان العدو خلف الجدار، إطلاق عادي
                 let targets = [...walls];
                 for(let id in playersData) {
                     if(gameMode === 'bot' && id !== 'bot') continue;
