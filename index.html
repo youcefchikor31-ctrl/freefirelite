@@ -2,82 +2,94 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
     
-    <title>Pro FPS - Full Audio Update</title>
+    <title>Pro FPS - Responsive & Copy Feature</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none;}
+        * { box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none;}
         
+        canvas { display: block; width: 100vw; height: 100vh; }
+
         #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 100000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .btn-start-fs { background: #ffaa00; border: none; padding: 20px 40px; font-size: 24px; font-weight: bold; border-radius: 10px; cursor: pointer; color: #000; box-shadow: 0 0 20px rgba(255, 170, 0, 0.5); transition: 0.2s; }
+        .btn-start-fs { background: #ffaa00; border: none; padding: 2vh 4vw; font-size: max(20px, 3vh); font-weight: bold; border-radius: 10px; cursor: pointer; color: #000; box-shadow: 0 0 20px rgba(255, 170, 0, 0.5); transition: 0.2s; }
         .btn-start-fs:active { transform: scale(0.95); background: #cc8800; }
 
         #orientation-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: 24px; color: #ffcc00; display: none;}
         @media screen and (orientation: portrait) { #orientation-lock { display: flex !important; } }
 
         #lobby-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; display: none;} 
-        .panel { background: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px; border: 1px solid #00aaff; pointer-events: auto; backdrop-filter: blur(5px); }
-        .left-panel { position: absolute; left: 20px; top: 20px; width: 260px; display: flex; flex-direction: column; gap: 10px;}
-        .left-panel input[type="text"] { width: 90%; padding: 8px; background: #222; color: #fff; border: 1px solid #00aaff; text-align: center; font-weight: bold;}
-        .color-picker { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
-        .join-box { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; border-top: 1px solid #555; padding-top: 10px;}
-        .btn { background: rgba(0, 100, 255, 0.7); border: 2px solid #00aaff; color: white; padding: 10px; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.2s;}
+        .panel { background: rgba(0,0,0,0.6); padding: 2vh; border-radius: 10px; border: 1px solid #00aaff; pointer-events: auto; backdrop-filter: blur(5px); max-height: 90vh; overflow-y: auto; }
+        
+        .left-panel { position: absolute; left: 2vw; top: 5vh; width: 35vw; max-width: 280px; display: flex; flex-direction: column; gap: 1vh;}
+        .left-panel input[type="text"] { width: 100%; padding: 1vh; background: #222; color: #fff; border: 1px solid #00aaff; text-align: center; font-weight: bold; border-radius: 5px;}
+        .color-picker { display: flex; justify-content: space-between; align-items: center; font-size: min(14px, 2.5vh); }
+        .color-picker input[type="color"] { cursor: pointer; border: none; width: 30px; height: 30px; background: none; }
+        
+        .join-box { display: flex; flex-direction: column; gap: 5px; margin-top: 1vh; border-top: 1px solid #555; padding-top: 1vh;}
+        .btn { background: rgba(0, 100, 255, 0.7); border: 2px solid #00aaff; color: white; padding: 1vh; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.2s; font-size: min(14px, 2.5vh);}
         .btn:active { background: #00aaff; transform: scale(0.95);}
 
-        .host-controls { position: absolute; right: 20px; top: 20px; width: 220px; }
-        .mode-select { width: 100%; padding: 5px; margin-bottom: 10px; background: #333; color: white; }
-        .player-list { max-height: 120px; overflow-y: auto; margin-bottom: 10px; font-size: 14px; }
-        .player-item { display: flex; justify-content: space-between; margin-bottom: 5px; padding: 5px; background: rgba(0,0,0,0.5); border-radius: 4px;}
-        .team-btn { font-size: 12px; padding: 2px 5px; }
+        .host-controls { position: absolute; right: 2vw; top: 5vh; width: 35vw; max-width: 280px; }
+        .mode-select { width: 100%; padding: 1vh; margin-bottom: 1vh; background: #333; color: white; border-radius: 5px; }
+        .player-list { max-height: 15vh; overflow-y: auto; margin-bottom: 1vh; font-size: min(14px, 2.5vh); }
+        .player-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; padding: 5px; background: rgba(0,0,0,0.5); border-radius: 4px;}
+        .team-btn { font-size: 10px; padding: 3px 6px; }
         .team-a { background: #0044aa; border-color: #0066ff;} .team-b { background: #aa0000; border-color: #ff3333;}
-        #btn-start { width: 100%; background: #ffaa00; color: #000; border: none; font-size: 18px; padding: 10px; font-weight: bold; border-radius: 5px;}
+        #btn-start { width: 100%; background: #ffaa00; color: #000; border: none; font-size: min(18px, 3vh); padding: 1.5vh; font-weight: bold; border-radius: 5px;}
+
+        /* كود الغرفة وزر النسخ */
+        .copy-container { display: flex; justify-content: center; align-items: center; gap: 5px; margin-top: 5px; }
+        .copy-code { font-size: min(16px, 2.8vh); background: #222; padding: 5px 10px; border-radius: 4px; border: 1px solid #ffaa00; color: #ffaa00; user-select: all; }
+        .btn-copy { background: #ffaa00; color: #000; border: none; padding: 5px 10px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: min(14px, 2.5vh); transition: 0.2s;}
+        .btn-copy:active { background: #cc8800; transform: scale(0.9); }
 
         #game-ui { display: none; }
         #crosshair { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); z-index: 10; pointer-events: none;}
         #crosshair::after { content: ''; position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: #ffffff; border-radius: 50%; transform: translate(-50%, -50%); }
         
-        #top-status { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); padding: 5px 15px; border: 2px solid #fff; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; text-shadow: 0 0 5px #000; z-index: 10; pointer-events: none; display: flex; gap: 15px; }
+        #top-status { position: absolute; top: 2vh; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); padding: 1vh 2vw; border: 2px solid #fff; border-radius: 10px; color: white; font-size: min(16px, 3vh); font-weight: bold; text-shadow: 0 0 5px #000; z-index: 10; pointer-events: none; display: flex; gap: 2vw; }
         .score-a { color: #00aaff; } .score-b { color: #ff4444; }
         
-        #hp-container { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 250px; height: 20px; background: rgba(0,0,0,0.7); border: 2px solid #fff; border-radius: 10px; overflow: hidden; z-index: 10; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        #hp-container { position: absolute; bottom: 5vh; left: 50%; transform: translateX(-50%); width: 30vw; max-width: 250px; height: 3vh; min-height: 20px; background: rgba(0,0,0,0.7); border: 2px solid #fff; border-radius: 10px; overflow: hidden; z-index: 10; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
         #hp-fill { width: 100%; height: 100%; background: #ffffff; transition: width 0.2s, background-color 0.2s; }
-        #hp-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; text-align: center; color: #000; font-weight: bold; line-height: 20px; font-size: 14px; pointer-events: none;}
+        #hp-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; color: #000; font-weight: bold; font-size: min(14px, 2.5vh); pointer-events: none;}
         
-        #heal-progress-container { display: none; position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 15px; background: rgba(0,0,0,0.7); border: 1px solid #00ff00; border-radius: 8px; overflow: hidden; z-index: 20; }
+        #heal-progress-container { display: none; position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); width: 25vw; max-width: 200px; height: 2vh; background: rgba(0,0,0,0.7); border: 1px solid #00ff00; border-radius: 8px; overflow: hidden; z-index: 20; }
         #heal-progress-fill { width: 0%; height: 100%; background: #00ff00; }
-        #heal-progress-text { position: absolute; width: 100%; text-align: center; color: white; font-size: 12px; line-height: 15px; font-weight: bold; }
+        #heal-progress-text { position: absolute; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; color: white; font-size: min(12px, 2vh); font-weight: bold; }
 
-        #msg-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; font-size: 30px; z-index: 20; color: #fff; pointer-events: auto; text-align: center;}
+        #msg-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; font-size: min(30px, 6vh); z-index: 20; color: #fff; pointer-events: auto; text-align: center;}
         
         #left-touch-zone { position: absolute; top: 0; left: 0; width: 50%; height: 100%; z-index: 1; pointer-events: auto; }
         #right-touch-zone { position: absolute; top: 0; right: 0; width: 50%; height: 100%; z-index: 1; pointer-events: auto; }
 
-        #joystick-pad { position: absolute; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); display: none; transform: translate(-50%, -50%); z-index: 5; pointer-events: none;}
-        #joystick-knob { position: absolute; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.7); top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px #fff;}
+        #joystick-pad { position: absolute; width: min(120px, 20vw); height: min(120px, 20vw); border-radius: 50%; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); display: none; transform: translate(-50%, -50%); z-index: 5; pointer-events: none;}
+        #joystick-knob { position: absolute; width: min(40px, 7vw); height: min(40px, 7vw); border-radius: 50%; background: rgba(255,255,255,0.7); top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px #fff;}
 
-        #minimap { position: absolute; top: 10px; left: 10px; width: 120px; height: 120px; background: rgba(0, 0, 0, 0.6); border: 2px solid #00aaff; border-radius: 10px; z-index: 10; pointer-events: none; }
+        #minimap { position: absolute; top: 2vh; left: 2vw; width: min(120px, 15vw); height: min(120px, 15vw); background: rgba(0, 0, 0, 0.6); border: 2px solid #00aaff; border-radius: 10px; z-index: 10; pointer-events: none; }
 
-        #weapon-ui { position: absolute; bottom: 120px; right: 20px; background: rgba(0,0,0,0.7); border: 2px solid #ffaa00; padding: 10px; border-radius: 10px; color: white; text-align: center; font-weight: bold; z-index: 15; pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; width: 80px;}
+        #weapon-ui { position: absolute; bottom: 18vh; right: 2vw; background: rgba(0,0,0,0.7); border: 2px solid #ffaa00; padding: 1vh; border-radius: 10px; color: white; text-align: center; font-weight: bold; z-index: 15; pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; width: max(60px, 8vw);}
         #weapon-ui:active { background: rgba(255, 170, 0, 0.4); }
-        .gun-icon { font-size: 24px; margin-bottom: 5px;}
+        .gun-icon { font-size: min(24px, 4vh); margin-bottom: 2px;}
 
-        .btn-game { position: absolute; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255,255,255,0.3); color: white; font-weight: bold; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 50%; pointer-events: auto; font-size: 16px; z-index: 15; user-select: none;}
+        .btn-game { position: absolute; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255,255,255,0.3); color: white; font-weight: bold; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 50%; pointer-events: auto; font-size: min(16px, 3vh); z-index: 15; user-select: none;}
         .btn-game:active { background: rgba(255, 255, 255, 0.4); }
         
-        #btn-shoot { bottom: 30px; right: 30px; width: 80px; height: 80px; background: rgba(255, 170, 0, 0.2); border-color: #ffaa00; font-size: 20px;}
-        #btn-gloo { bottom: 30px; right: 130px; width: 60px; height: 60px; background: rgba(0, 255, 255, 0.2); border-color: #00ffff; }
-        #btn-heal { bottom: 30px; right: 210px; width: 60px; height: 60px; background: rgba(0, 255, 0, 0.2); border-color: #00ff00; }
+        #btn-shoot { bottom: 5vh; right: 5vw; width: min(80px, 15vw); height: min(80px, 15vw); background: rgba(255, 170, 0, 0.2); border-color: #ffaa00; font-size: min(20px, 4vh);}
+        #btn-gloo { bottom: 5vh; right: calc(5vw + min(90px, 17vw)); width: min(60px, 11vw); height: min(60px, 11vw); background: rgba(0, 255, 255, 0.2); border-color: #00ffff; }
+        #btn-heal { bottom: 5vh; right: calc(5vw + min(160px, 30vw)); width: min(60px, 11vw); height: min(60px, 11vw); background: rgba(0, 255, 0, 0.2); border-color: #00ff00; }
         
-        .dmg-text { position: absolute; color: #ffaa00; font-weight: bold; font-size: 22px; text-shadow: 2px 2px 0 #000; pointer-events: none; animation: floatUp 0.8s forwards; z-index: 50; }
-        .dmg-headshot { color: #ff0000; font-size: 28px; }
+        .dmg-text { position: absolute; color: #ffaa00; font-weight: bold; font-size: min(22px, 4vh); text-shadow: 2px 2px 0 #000; pointer-events: none; animation: floatUp 0.8s forwards; z-index: 50; }
+        .dmg-headshot { color: #ff0000; font-size: min(28px, 5vh); }
         @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-50px) scale(1.5); opacity: 0; } }
 
-        #kill-feed { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 5px; pointer-events: none; z-index: 50; }
-        .kill-msg { background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 5px; color: white; font-weight: bold; border: 1px solid #444; animation: fadeOut 4s forwards; font-size: 14px;}
+        #kill-feed { position: absolute; bottom: 12vh; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 5px; pointer-events: none; z-index: 50; }
+        .kill-msg { background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 5px; color: white; font-weight: bold; border: 1px solid #444; animation: fadeOut 4s forwards; font-size: min(14px, 2.5vh);}
         .kill-msg .killer { color: #00aaff; } .kill-msg .victim { color: #ff4444; } .kill-msg .hs { color: #ffaa00; margin-right: 5px; font-size: 1.1em; }
         @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; display: none; } }
     </style>
@@ -89,7 +101,7 @@
 
     <div id="start-screen">
         <h1 style="color: #00aaff; text-shadow: 0 0 15px #00aaff; margin-bottom: 5px;">PRO FPS</h1>
-        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">التحديث الصوتي الشامل 🔊</p>
+        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">باتل رويال الكاملة</p>
         <button class="btn-start-fs" id="btn-fs">دخول اللعبة</button>
     </div>
 
@@ -97,24 +109,30 @@
 
     <div id="lobby-ui">
         <div class="panel left-panel">
-            <h3 style="margin: 0; color: #00aaff; text-align: center;">شخصيتي</h3>
+            <h3 style="margin: 0; color: #00aaff; text-align: center; font-size: min(18px, 3vh);">شخصيتي</h3>
             <input type="text" id="my-name" value="مقاتل" placeholder="اسمك">
             <div class="color-picker">القميص: <input type="color" id="c-shirt" value="#0055ff"></div>
             <div class="color-picker">السروال: <input type="color" id="c-pants" value="#222222"></div>
             <div class="color-picker">الشعر: <input type="color" id="c-hair" value="#ffaa00"></div>
             
             <div class="join-box" id="join-section">
-                <small style="color:#aaa;">للانضمام لغرفة صديق:</small>
+                <small style="color:#aaa; font-size: min(12px, 2vh);">للانضمام لغرفة صديق:</small>
                 <input type="text" id="friend-id" placeholder="كود الغرفة">
                 <button class="btn" id="btn-join">انضمام ➔</button>
             </div>
-            <div style="font-size: 12px; color: #ffaa00; text-align: center; margin-top: 5px;">
-                كود غرفتك: <br><span id="my-id-display" style="font-size: 16px; user-select: all;">جارِ الاتصال...</span>
+            
+            <!-- تم إضافة ميزة نسخ كود المجموعة هنا -->
+            <div style="font-size: min(12px, 2vh); color: #ffaa00; text-align: center; margin-top: 1vh;">
+                كود مجموعتك:
+                <div class="copy-container">
+                    <span id="my-id-display" class="copy-code">جارِ الاتصال...</span>
+                    <button class="btn-copy" id="btn-copy-code">نسخ</button>
+                </div>
             </div>
         </div>
 
         <div class="panel host-controls" id="host-panel">
-            <h3 style="margin-top:0; color:#ffaa00; text-align: center;">المباراة</h3>
+            <h3 style="margin-top:0; color:#ffaa00; text-align: center; font-size: min(18px, 3vh);">المباراة</h3>
             <select class="mode-select" id="mode-select">
                 <option value="bot">تدريب ضد الروبوت</option>
                 <option value="1v1">1 ضد 1</option>
@@ -163,9 +181,8 @@
         <div id="kill-feed"></div>
     </div>
 
-    <!-- كود الدخول والتشغيل الأساسي (بما في ذلك تفعيل نظام الصوت) -->
     <script>
-        // تعريف نظام الصوت برمجياً بدون ملفات
+        // إعدادات الصوت الاصطناعية (Web Audio API)
         window.sfx = {};
         window.initAudio = function() {
             if(window.audioCtx) return;
@@ -178,13 +195,9 @@
                 const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
                 const data = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-                const noise = ctx.createBufferSource();
-                noise.buffer = buffer;
-                const noiseFilter = ctx.createBiquadFilter();
-                noiseFilter.type = 'lowpass'; noiseFilter.frequency.value = 1000;
-                const gain = ctx.createGain();
-                gain.gain.setValueAtTime(0.5, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                const noise = ctx.createBufferSource(); noise.buffer = buffer;
+                const noiseFilter = ctx.createBiquadFilter(); noiseFilter.type = 'lowpass'; noiseFilter.frequency.value = 1000;
+                const gain = ctx.createGain(); gain.gain.setValueAtTime(0.5, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
                 noise.connect(noiseFilter); noiseFilter.connect(gain); gain.connect(ctx.destination);
                 noise.start();
             };
@@ -200,8 +213,7 @@
             window.sfx.playHit = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.1);
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.1);
                 gain.gain.setValueAtTime(0.5, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
                 osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
             };
@@ -209,8 +221,7 @@
             window.sfx.playDamage = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 0.3);
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 0.3);
                 gain.gain.setValueAtTime(0.8, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
                 osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.3);
             };
@@ -220,10 +231,8 @@
                 const playClick = (timeOffset) => {
                     const osc = ctx.createOscillator(); const gain = ctx.createGain();
                     osc.type = 'square'; osc.frequency.setValueAtTime(800, ctx.currentTime + timeOffset);
-                    gain.gain.setValueAtTime(0.2, ctx.currentTime + timeOffset);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + timeOffset + 0.05);
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(ctx.currentTime + timeOffset); osc.stop(ctx.currentTime + timeOffset + 0.05);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime + timeOffset); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + timeOffset + 0.05);
+                    osc.connect(gain); gain.connect(ctx.destination); osc.start(ctx.currentTime + timeOffset); osc.stop(ctx.currentTime + timeOffset + 0.05);
                 };
                 playClick(0); playClick(0.4); playClick(1.2);
             };
@@ -231,8 +240,7 @@
             window.sfx.playGloo = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                osc.type = 'sine'; osc.frequency.setValueAtTime(300, ctx.currentTime);
-                osc.frequency.linearRampToValueAtTime(900, ctx.currentTime + 0.3);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(300, ctx.currentTime); osc.frequency.linearRampToValueAtTime(900, ctx.currentTime + 0.3);
                 gain.gain.setValueAtTime(0.5, ctx.currentTime); gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
                 osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.4);
             };
@@ -243,31 +251,48 @@
                 notes.forEach((freq, i) => {
                     const osc = ctx.createOscillator(); const gain = ctx.createGain();
                     osc.type = 'sine'; osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
-                    gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.1);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.3);
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(ctx.currentTime + i * 0.1); osc.stop(ctx.currentTime + i * 0.1 + 0.3);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.1); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.3);
+                    osc.connect(gain); gain.connect(ctx.destination); osc.start(ctx.currentTime + i * 0.1); osc.stop(ctx.currentTime + i * 0.1 + 0.3);
                 });
             };
         };
 
+        // زر الدخول وإجبار وضع الشاشة الكاملة والعرض
         document.getElementById('btn-fs').addEventListener('click', () => {
             const docElm = document.documentElement;
             if (docElm.requestFullscreen) docElm.requestFullscreen();
             else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
-            if (screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(e => console.log(e)); }
             
-            // تهيئة الصوت عند التفاعل لأول مرة لتخطي حماية المتصفح
+            if (screen.orientation && screen.orientation.lock) { 
+                screen.orientation.lock('landscape').catch(e => console.log('Orientation lock failed:', e)); 
+            }
+            
             window.initAudio();
-
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('lobby-ui').style.display = 'block';
+        });
+
+        // زر النسخ الخاص برمز المجموعة
+        document.getElementById('btn-copy-code').addEventListener('click', () => {
+            const code = document.getElementById('my-id-display').innerText;
+            if(code && code !== 'جارِ الاتصال...') {
+                navigator.clipboard.writeText(code).then(() => {
+                    const btn = document.getElementById('btn-copy-code');
+                    btn.innerText = 'تم!';
+                    btn.style.background = '#00ff00';
+                    setTimeout(() => {
+                        btn.innerText = 'نسخ';
+                        btn.style.background = '#ffaa00';
+                    }, 2000);
+                });
+            }
         });
     </script>
 
     <script type="module">
         import * as THREE from 'three';
 
+        // الخرائط الطبيعية المتاحة
         const mapThemes = [
             { type: 'forest', name: "الغابة الخضراء", bg: 0x87CEEB, floor: 0x2d5a27, rock: 0x696969, trunk: 0x5c4033, leaf: 0x228b22, border: 0x3b5e2b },
             { type: 'desert', name: "صحراء الأطلال", bg: 0x87CEEB, floor: 0xeedcb3, ruin: 0xd2b48c, cactus: 0x2e8b57, border: 0xcd853f },
@@ -380,17 +405,17 @@
                 }
                 else if (data.type === 'BULLET_FIRED') {
                     drawBullet(data.start, data.end);
-                    if(window.sfx.playShoot) window.sfx.playShoot(); // صوت إطلاق العدو
+                    if(window.sfx && window.sfx.playShoot) window.sfx.playShoot(); 
                     if(playersData[conn.peer]) playersData[conn.peer].lastShot = performance.now(); 
                 }
                 else if (data.type === 'GLOO_WALL') {
                     placeGlooWallLocally(new THREE.Vector3(data.pos.x, data.pos.y, data.pos.z), data.rot);
-                    if(window.sfx.playGloo) window.sfx.playGloo(); // صوت ثلجة العدو
+                    if(window.sfx && window.sfx.playGloo) window.sfx.playGloo(); 
                 }
                 else if (data.type === 'HIT') {
                     if(myHp <= 0) return; 
                     myHp -= data.damage; updateHUD();
-                    if(window.sfx.playDamage) window.sfx.playDamage(); // صوت تلقيك للضربة
+                    if(window.sfx && window.sfx.playDamage) window.sfx.playDamage();
 
                     if (myHp <= 0) {
                         if(!isHost) conn.send({ type: 'I_DIED', team: myTeam });
@@ -435,7 +460,8 @@
             list.innerHTML = `<div class="player-item">أنت (المضيف) <button class="btn team-btn ${myTeam==='A'?'team-a':'team-b'}" onclick="toggleMyTeam()">فريق ${myTeam}</button></div>`;
             for (let id in connections) {
                 if(!playersData[id]) continue;
-                list.innerHTML += `<div class="player-item">${playersData[id].profile.name} <button class="btn team-btn ${playersData[id].team === 'A' ? 'team-a' : 'team-b'}" onclick="toggleTeam('${id}')">فريق ${playersData[id].team}</button></div>`;
+                const p = playersData[id];
+                list.innerHTML += `<div class="player-item">${p.profile.name} <button class="btn team-btn ${p.team === 'A' ? 'team-a' : 'team-b'}" onclick="toggleTeam('${id}')">فريق ${p.team}</button></div>`;
             }
             broadcastLobbyState();
         }
@@ -464,6 +490,13 @@
             scene.background = new THREE.Color(0x87CEEB); scene.fog = new THREE.FogExp2(0x87CEEB, 0.015);
             const grass = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshBasicMaterial({color: 0x228B22}));
             grass.rotation.x = -Math.PI/2; lobbyEnv.add(grass);
+            
+            const cloudGeo = new THREE.SphereGeometry(4, 7, 7); const cloudMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            for(let i=0; i<15; i++) {
+                const cloud = new THREE.Mesh(cloudGeo, cloudMat);
+                cloud.position.set((Math.random() - 0.5) * 100, 25 + Math.random() * 10, -30 - Math.random() * 50);
+                cloud.scale.set(1 + Math.random()*2, 0.5 + Math.random(), 1 + Math.random()*2); lobbyEnv.add(cloud);
+            }
             scene.add(lobbyEnv);
             
             gunMesh = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 1.5), new THREE.MeshLambertMaterial({ color: 0x222222 }));
@@ -482,8 +515,11 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
 
+            // إصلاح التجاوب والتمدد عند تغيير حجم الشاشة أو الشاشة الكاملة
             window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);
+                camera.aspect = window.innerWidth / window.innerHeight; 
+                camera.updateProjectionMatrix(); 
+                renderer.setSize(window.innerWidth, window.innerHeight);
             });
 
             setupControls(); animate();
@@ -754,7 +790,7 @@
         }
 
         function placeGlooWallLocally(pos, rot) {
-            if(window.sfx && window.sfx.playGloo) window.sfx.playGloo(); // صوت الثلجة
+            if(window.sfx && window.sfx.playGloo) window.sfx.playGloo();
             const geo = new THREE.BoxGeometry(8, 8, 1);
             const mat = new THREE.MeshBasicMaterial({ color: 0x55ffff, transparent: true, opacity: 0.7 });
             const gloo = new THREE.Mesh(geo, mat);
@@ -785,7 +821,7 @@
         function reloadWeapon() {
             if (isReloading || myAmmo === MAX_AMMO || myHp <= 0) return;
             isReloading = true; updateWeaponUI();
-            if(window.sfx && window.sfx.playReload) window.sfx.playReload(); // صوت التلقيم
+            if(window.sfx && window.sfx.playReload) window.sfx.playReload();
             gunMesh.rotation.x = -Math.PI / 4; 
             setTimeout(() => {
                 myAmmo = MAX_AMMO; isReloading = false;
@@ -798,7 +834,7 @@
             if(myAmmo <= 0) { reloadWeapon(); return; }
             
             myAmmo--; updateWeaponUI();
-            if(window.sfx && window.sfx.playShoot) window.sfx.playShoot(); // صوت إطلاق النار
+            if(window.sfx && window.sfx.playShoot) window.sfx.playShoot();
 
             const muzzle = camera.getObjectByName("muzzle");
             const startPos = new THREE.Vector3(); muzzle.getWorldPosition(startPos);
@@ -836,7 +872,6 @@
                         const origColor = hitMesh.material.color.getHex();
                         hitMesh.material.color.setHex(0xff0000);
                         
-                        // تشغيل صوت الإصابة
                         if(window.sfx) {
                             if(isHeadshot) window.sfx.playHeadshot();
                             else window.sfx.playHit();
@@ -1033,7 +1068,7 @@
                         if (healTime >= HEAL_DURATION) {
                             isHealing = false; document.getElementById('heal-progress-container').style.display = 'none';
                             myHp = Math.min(MAX_HP, myHp + 75); updateHUD(); showFloatingDamage('+75', camera.position);
-                            if(window.sfx && window.sfx.playHeal) window.sfx.playHeal(); // صوت الشفاء
+                            if(window.sfx && window.sfx.playHeal) window.sfx.playHeal();
                         }
                     }
                 }
@@ -1091,18 +1126,12 @@
                     }
 
                     if (bestEnemyPos) {
-                        let dummyCam = camera.clone();
-                        dummyCam.lookAt(bestEnemyPos);
-                        let targetEuler = dummyCam.rotation;
-                        
+                        let dummyCam = camera.clone(); dummyCam.lookAt(bestEnemyPos); let targetEuler = dummyCam.rotation;
                         let diffYaw = targetEuler.y - yaw;
-                        while(diffYaw < -Math.PI) diffYaw += Math.PI*2;
-                        while(diffYaw > Math.PI) diffYaw -= Math.PI*2;
+                        while(diffYaw < -Math.PI) diffYaw += Math.PI*2; while(diffYaw > Math.PI) diffYaw -= Math.PI*2;
                         yaw += diffYaw * 0.08; 
                         
-                        let diffPitch = targetEuler.x - pitch;
-                        pitch += diffPitch * 0.08;
-                        pitch = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, pitch));
+                        let diffPitch = targetEuler.x - pitch; pitch += diffPitch * 0.08; pitch = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, pitch));
                         camera.rotation.set(pitch, yaw, 0);
                     }
                 }
@@ -1136,10 +1165,9 @@
 
                         if (!bot.lastShoot || time - bot.lastShoot > 600) { 
                             bot.lastShoot = time; drawBullet(botPos.clone().setY(4), camera.position);
-                            if(window.sfx && window.sfx.playShoot) window.sfx.playShoot(); // صوت إطلاق البوت
+                            if(window.sfx && window.sfx.playShoot) window.sfx.playShoot();
                             myHp -= 15; updateHUD(); 
-                            if(window.sfx && window.sfx.playDamage) window.sfx.playDamage(); // صوت تلقي الضربة
-
+                            if(window.sfx && window.sfx.playDamage) window.sfx.playDamage();
                             if (isHealing) { isHealing = false; document.getElementById('heal-progress-container').style.display = 'none'; }
                             if(myHp <= 0) { addKillFeedMsg('روبوت', myProfile.name, false); handleDeath(); }
                         }
