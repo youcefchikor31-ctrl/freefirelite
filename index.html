@@ -3,38 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <!-- إعدادات تطبيق الويب (PWA) -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-title" content="Pro FPS">
-    <meta name="application-name" content="Pro FPS">
     
-    <!-- أيقونة اللعبة (مؤشر قنص احترافي مدمج برمجياً بدون ملفات خارجية) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111' rx='20'/%3E%3Ccircle cx='50' cy='50' r='35' stroke='%23ffaa00' stroke-width='5' fill='none'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ff0000'/%3E%3Cline x1='50' y1='5' x2='50' y2='25' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='50' y1='95' x2='50' y2='75' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='5' y1='50' x2='25' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='95' y1='50' x2='75' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111' rx='20'/%3E%3Ccircle cx='50' cy='50' r='35' stroke='%23ffaa00' stroke-width='5' fill='none'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ff0000'/%3E%3Cline x1='50' y1='5' x2='50' y2='25' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='50' y1='95' x2='50' y2='75' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='5' y1='50' x2='25' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='95' y1='50' x2='75' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
-
-    <title>Pro FPS - Battle Royale</title>
+    <title>Pro FPS - Multiplayer Fix</title>
     <style>
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; -webkit-user-select: none;}
         
         canvas { display: block; width: 100vw; height: 100vh; }
 
-        /* شاشة البداية */
         #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 100000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .btn-start-fs { background: #ffaa00; border: none; padding: 2vh 4vw; font-size: max(20px, 3vh); font-weight: bold; border-radius: 10px; cursor: pointer; color: #000; box-shadow: 0 0 20px rgba(255, 170, 0, 0.5); transition: 0.2s; }
         .btn-start-fs:active { transform: scale(0.95); background: #cc8800; }
 
-        /* شاشة الاستئناف (عند العودة من تطبيق آخر) */
         #resume-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100001; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center;}
 
         #orientation-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: 24px; color: #ffcc00; display: none;}
         @media screen and (orientation: portrait) { #orientation-lock { display: flex !important; } }
 
-        /* اللوبي */
         #lobby-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; display: none;} 
         .panel { background: rgba(0,0,0,0.6); padding: 2vh; border-radius: 10px; border: 1px solid #00aaff; pointer-events: auto; backdrop-filter: blur(5px); max-height: 90vh; overflow-y: auto; }
         
@@ -113,14 +102,13 @@
 
     <div id="start-screen">
         <h1 style="color: #00aaff; text-shadow: 0 0 15px #00aaff; margin-bottom: 5px;">PRO FPS</h1>
-        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">التطبيق المتكامل</p>
+        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">التحديث الأقوى 🚀</p>
         <button class="btn-start-fs" id="btn-fs">دخول اللعبة</button>
     </div>
 
-    <!-- شاشة الاستئناف بعد العودة من الانستغرام/الماسنجر -->
     <div id="resume-screen">
-        <h2 style="color: #ffaa00; margin-bottom: 20px;">تم إيقاف اللعبة مؤقتاً</h2>
-        <button class="btn-start-fs" id="btn-resume">استئناف اللعب</button>
+        <h2 style="color: #ffaa00; margin-bottom: 20px;">تم الإيقاف مؤقتاً</h2>
+        <button class="btn-start-fs" id="btn-resume">استئناف</button>
     </div>
 
     <div id="orientation-lock">⚠️<br>يرجى تدوير الهاتف بالعرض للعب!</div>
@@ -199,73 +187,6 @@
     </div>
 
     <script>
-        // إعداد الصوت
-        window.sfx = {};
-        window.initAudio = function() {
-            if(window.audioCtx) return;
-            window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const ctx = window.audioCtx;
-
-            window.sfx.playShoot = () => {
-                if(ctx.state === 'suspended') ctx.resume();
-                const bufferSize = ctx.sampleRate * 0.1; const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-                const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-                const noise = ctx.createBufferSource(); noise.buffer = buffer;
-                const noiseFilter = ctx.createBiquadFilter(); noiseFilter.type = 'lowpass'; noiseFilter.frequency.value = 1000;
-                const gain = ctx.createGain(); gain.gain.setValueAtTime(0.5, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-                noise.connect(noiseFilter); noiseFilter.connect(gain); gain.connect(ctx.destination); noise.start();
-            };
-            window.sfx.playHeadshot = () => {
-                if(ctx.state === 'suspended') ctx.resume();
-                const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                osc.type = 'sine'; osc.frequency.setValueAtTime(1200, ctx.currentTime);
-                gain.gain.setValueAtTime(1, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.3);
-            };
-            window.sfx.playHit = () => {
-                if(ctx.state === 'suspended') ctx.resume();
-                const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.5, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-                osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
-            };
-            window.sfx.playDamage = () => {
-                if(ctx.state === 'suspended') ctx.resume();
-                const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 0.3);
-                gain.gain.setValueAtTime(0.8, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.3);
-            };
-            window.sfx.playReload = () => {
-                if(ctx.state === 'suspended') ctx.resume();
-                const playClick = (timeOffset) => {
-                    const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                    osc.type = 'square'; osc.frequency.setValueAtTime(800, ctx.currentTime + timeOffset);
-                    gain.gain.setValueAtTime(0.2, ctx.currentTime + timeOffset); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + timeOffset + 0.05);
-                    osc.connect(gain); gain.connect(ctx.destination); osc.start(ctx.currentTime + timeOffset); osc.stop(ctx.currentTime + timeOffset + 0.05);
-                };
-                playClick(0); playClick(0.4); playClick(1.2);
-            };
-            window.sfx.playGloo = () => {
-                if(ctx.state === 'suspended') ctx.resume();
-                const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                osc.type = 'sine'; osc.frequency.setValueAtTime(300, ctx.currentTime); osc.frequency.linearRampToValueAtTime(900, ctx.currentTime + 0.3);
-                gain.gain.setValueAtTime(0.5, ctx.currentTime); gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-                osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.4);
-            };
-            window.sfx.playHeal = () => {
-                if(ctx.state === 'suspended') ctx.resume();
-                const notes = [440, 554.37, 659.25, 880];
-                notes.forEach((freq, i) => {
-                    const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
-                    gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.1); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.3);
-                    osc.connect(gain); gain.connect(ctx.destination); osc.start(ctx.currentTime + i * 0.1); osc.stop(ctx.currentTime + i * 0.1 + 0.3);
-                });
-            };
-        };
-
-        // تفعيل الشاشة الكاملة
         const goFullscreen = () => {
             const docElm = document.documentElement;
             if (docElm.requestFullscreen) docElm.requestFullscreen().catch(e=>console.log(e));
@@ -275,32 +196,24 @@
 
         document.getElementById('btn-fs').addEventListener('click', () => {
             goFullscreen();
-            window.initAudio();
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('lobby-ui').style.display = 'block';
         });
 
         document.getElementById('btn-resume').addEventListener('click', () => {
             goFullscreen();
-            if(window.audioCtx && window.audioCtx.state === 'suspended') window.audioCtx.resume();
             document.getElementById('resume-screen').style.display = 'none';
         });
 
-        // نظام الحفاظ على الجلسة (Session Persistence) عند العودة من تطبيق آخر
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "visible") {
-                // إذا كنا قد تخطينا شاشة البداية وتم إلغاء الشاشة الكاملة بواسطة الهاتف
                 if (document.getElementById('start-screen').style.display === 'none' && !document.fullscreenElement) {
                     document.getElementById('resume-screen').style.display = 'flex';
                 }
-                // إعادة اتصال PeerJS في حال انقطع
-                if (window.appPeer && window.appPeer.disconnected) {
-                    window.appPeer.reconnect();
-                }
+                if (window.appPeer && window.appPeer.disconnected) window.appPeer.reconnect();
             }
         });
 
-        // زر النسخ
         document.getElementById('btn-copy-code').addEventListener('click', () => {
             const code = document.getElementById('my-id-display').innerText;
             if(code && code !== 'جارِ الاتصال...') {
@@ -308,7 +221,7 @@
                     const btn = document.getElementById('btn-copy-code');
                     btn.innerText = 'تم!'; btn.style.background = '#00ff00';
                     setTimeout(() => { btn.innerText = 'نسخ'; btn.style.background = '#ffaa00'; }, 2000);
-                }).catch(err => alert("فشل النسخ تلقائياً، يرجى نسخ الكود يدوياً"));
+                }).catch(err => alert("النسخ غير مدعوم، انسخ الكود يدوياً"));
             }
         });
     </script>
@@ -357,23 +270,36 @@
         let aliveA = 0, aliveB = 0;
 
         function initNetwork() {
+            // إضافة سيرفرات STUN من Google لضمان نجاح الاتصال بين شبكات مختلفة (4G/Wi-Fi)
             myId = 'fps_' + Math.random().toString(36).substr(2, 5);
-            peer = new Peer(myId);
-            window.appPeer = peer; // حفظه في الواجهة العالمية لإعادة الاتصال
+            peer = new Peer(myId, {
+                config: {
+                    'iceServers': [
+                        { url: 'stun:stun.l.google.com:19302' },
+                        { url: 'stun:stun1.l.google.com:19302' }
+                    ]
+                }
+            });
+            window.appPeer = peer;
 
             peer.on('open', (id) => { document.getElementById('my-id-display').innerText = id; });
 
             peer.on('connection', (conn) => {
                 isHost = true; connections[conn.peer] = conn; setupConnectionEvents(conn);
                 playersData[conn.peer] = { team: 'B', hp: MAX_HP, profile: { name: 'ضيف', shirt: '#fff', pants: '#fff', hair: '#fff' }, mesh: null, lastShot: 0 };
-                updateLobbyUI();
+                
+                // إجبار التحديث بعد ثانية لضمان استلام ملفات الخصم
+                setTimeout(() => { updateLobbyUI(); broadcastLobbyState(); }, 1000);
             });
 
             document.getElementById('btn-join').addEventListener('click', () => {
                 const friendId = document.getElementById('friend-id').value;
                 if(friendId) {
-                    isHost = false; document.getElementById('host-panel').style.display = 'none'; document.getElementById('join-section').style.display = 'none';
-                    let conn = peer.connect(friendId); connections[friendId] = conn; setupConnectionEvents(conn);
+                    document.getElementById('btn-join').innerText = "جارِ الاتصال...";
+                    isHost = false; 
+                    let conn = peer.connect(friendId, { reliable: true }); 
+                    connections[friendId] = conn; 
+                    setupConnectionEvents(conn);
                 }
             });
 
@@ -401,63 +327,79 @@
         function broadcast(data) { for(let id in connections) connections[id].send(data); }
 
         function setupConnectionEvents(conn) {
-            conn.on('open', () => { conn.send({ type: 'PROFILE_UPDATE', profile: myProfile }); });
+            conn.on('open', () => { 
+                if(!isHost) {
+                    document.getElementById('host-panel').style.display = 'none'; 
+                    document.getElementById('join-section').innerHTML = '<p style="color:#00ff00; font-weight:bold; margin:0;">✔ متصل بالغرفة!</p>';
+                }
+                
+                // بروتوكول تأكيد المصافحة (Handshake)
+                setTimeout(() => {
+                    conn.send({ type: 'PROFILE_UPDATE', profile: myProfile }); 
+                    if(!isHost) conn.send({ type: 'REQUEST_LOBBY_STATE' });
+                }, 500);
+            });
 
             conn.on('data', (data) => {
-                if (data.type === 'PROFILE_UPDATE') {
-                    if (!playersData[conn.peer]) playersData[conn.peer] = { team: 'B', hp: MAX_HP, lastShot: 0 };
-                    playersData[conn.peer].profile = data.profile;
-                    if (!playersData[conn.peer].mesh) {
-                        playersData[conn.peer].mesh = createMinecraftCharacter(data.profile);
-                        scene.add(playersData[conn.peer].mesh);
-                    } else applyProfileToMesh(playersData[conn.peer].mesh, data.profile);
-                    organizeLobbyPositions(); updateLobbyUI();
-                    if (isHost) broadcastLobbyState();
-                }
-                else if (data.type === 'LOBBY_STATE' && !isHost) syncLobbyState(data.state);
-                else if (data.type === 'START_ROUND') {
-                    gameMode = data.mode; myTeam = data.myTeam; teamScoreA = data.scoreA; teamScoreB = data.scoreB; currentRound = data.round;
-                    buildMap(data.map, data.themeIdx); switchToGameScene(data.spawnIndex, data.themeIdx);
-                }
-                else if (data.type === 'ROUND_OVER') handleRoundOver(data.winnerTeam, data.scoreA, data.scoreB, data.matchOver);
-                else if (data.type === 'BACK_TO_LOBBY') returnToLobby();
-                else if (data.type === 'MOVE') {
-                    if (playersData[conn.peer] && playersData[conn.peer].mesh) {
-                        playersData[conn.peer].mesh.position.set(data.pos.x, 0, data.pos.z);
-                        playersData[conn.peer].mesh.rotation.y = data.rot;
-                        animateCharacter(playersData[conn.peer].mesh, data.isMoving, performance.now());
+                try {
+                    if (data.type === 'REQUEST_LOBBY_STATE' && isHost) {
+                        broadcastLobbyState();
                     }
-                }
-                else if (data.type === 'BULLET_FIRED') {
-                    drawBullet(data.start, data.end);
-                    if(window.sfx && window.sfx.playShoot) window.sfx.playShoot(); 
-                    if(playersData[conn.peer]) playersData[conn.peer].lastShot = performance.now(); 
-                }
-                else if (data.type === 'GLOO_WALL') {
-                    placeGlooWallLocally(new THREE.Vector3(data.pos.x, data.pos.y, data.pos.z), data.rot);
-                    if(window.sfx && window.sfx.playGloo) window.sfx.playGloo(); 
-                }
-                else if (data.type === 'HIT') {
-                    if(myHp <= 0) return; 
-                    myHp -= data.damage; updateHUD();
-                    if(window.sfx && window.sfx.playDamage) window.sfx.playDamage();
-
-                    if (myHp <= 0) {
-                        if(!isHost) conn.send({ type: 'I_DIED', team: myTeam });
-                        broadcast({ type: 'DEATH_EVENT', killerId: conn.peer, victimName: myProfile.name, headshot: data.headshot });
-                        addKillFeedMsg(playersData[conn.peer].profile.name, myProfile.name, data.headshot);
-                        handleDeath();
+                    else if (data.type === 'PROFILE_UPDATE') {
+                        if (!playersData[conn.peer]) playersData[conn.peer] = { team: 'B', hp: MAX_HP, lastShot: 0 };
+                        playersData[conn.peer].profile = data.profile;
+                        if (!playersData[conn.peer].mesh) {
+                            playersData[conn.peer].mesh = createMinecraftCharacter(data.profile);
+                            if(scene) scene.add(playersData[conn.peer].mesh);
+                        } else applyProfileToMesh(playersData[conn.peer].mesh, data.profile);
+                        organizeLobbyPositions(); updateLobbyUI();
+                        if (isHost) broadcastLobbyState();
                     }
-                }
-                else if (data.type === 'I_DIED' && isHost) {
-                    if (data.team === 'A') aliveA--; else aliveB--;
-                    checkRoundEnd();
-                }
-                else if (data.type === 'DEATH_EVENT') {
-                    let kName = data.killerId === 'bot' ? 'روبوت' : (playersData[data.killerId]?.profile?.name || 'مجهول');
-                    if (data.killerId === myId) kName = myProfile.name;
-                    addKillFeedMsg(kName, data.victimName, data.headshot);
-                }
+                    else if (data.type === 'LOBBY_STATE' && !isHost) {
+                        syncLobbyState(data.state);
+                        // نرسل البروفايل الخاص بنا مرة أخرى للتأكيد
+                        conn.send({ type: 'PROFILE_UPDATE', profile: myProfile });
+                    }
+                    else if (data.type === 'START_ROUND') {
+                        gameMode = data.mode; myTeam = data.myTeam; teamScoreA = data.scoreA; teamScoreB = data.scoreB; currentRound = data.round;
+                        buildMap(data.map, data.themeIdx); switchToGameScene(data.spawnIndex, data.themeIdx);
+                    }
+                    else if (data.type === 'ROUND_OVER') handleRoundOver(data.winnerTeam, data.scoreA, data.scoreB, data.matchOver);
+                    else if (data.type === 'BACK_TO_LOBBY') returnToLobby();
+                    else if (data.type === 'MOVE') {
+                        if (playersData[conn.peer] && playersData[conn.peer].mesh) {
+                            playersData[conn.peer].mesh.position.set(data.pos.x, 0, data.pos.z);
+                            playersData[conn.peer].mesh.rotation.y = data.rot;
+                            animateCharacter(playersData[conn.peer].mesh, data.isMoving, performance.now());
+                        }
+                    }
+                    else if (data.type === 'BULLET_FIRED') {
+                        drawBullet(data.start, data.end);
+                        if(playersData[conn.peer]) playersData[conn.peer].lastShot = performance.now(); 
+                    }
+                    else if (data.type === 'GLOO_WALL') {
+                        placeGlooWallLocally(new THREE.Vector3(data.pos.x, data.pos.y, data.pos.z), data.rot);
+                    }
+                    else if (data.type === 'HIT') {
+                        if(myHp <= 0) return; 
+                        myHp -= data.damage; updateHUD();
+                        if (myHp <= 0) {
+                            if(!isHost) conn.send({ type: 'I_DIED', team: myTeam });
+                            broadcast({ type: 'DEATH_EVENT', killerId: conn.peer, victimName: myProfile.name, headshot: data.headshot });
+                            addKillFeedMsg(playersData[conn.peer].profile.name, myProfile.name, data.headshot);
+                            handleDeath();
+                        }
+                    }
+                    else if (data.type === 'I_DIED' && isHost) {
+                        if (data.team === 'A') aliveA--; else aliveB--;
+                        checkRoundEnd();
+                    }
+                    else if (data.type === 'DEATH_EVENT') {
+                        let kName = data.killerId === 'bot' ? 'روبوت' : (playersData[data.killerId]?.profile?.name || 'مجهول');
+                        if (data.killerId === myId) kName = myProfile.name;
+                        addKillFeedMsg(kName, data.victimName, data.headshot);
+                    }
+                } catch (err) { console.error(err); }
             });
         }
 
@@ -471,10 +413,12 @@
         function syncLobbyState(state) {
             for(let id in state) {
                 if (id === myId) { myTeam = state[id].team; continue; }
-                if (!playersData[id]) playersData[id] = { hp: MAX_HP, mesh: createMinecraftCharacter(state[id].profile), lastShot: 0 };
+                if (!playersData[id]) {
+                    playersData[id] = { hp: MAX_HP, mesh: createMinecraftCharacter(state[id].profile), lastShot: 0 };
+                }
                 playersData[id].team = state[id].team; playersData[id].profile = state[id].profile;
                 applyProfileToMesh(playersData[id].mesh, state[id].profile);
-                if (!playersData[id].mesh.parent) scene.add(playersData[id].mesh);
+                if (scene && !playersData[id].mesh.parent) scene.add(playersData[id].mesh);
             }
             organizeLobbyPositions();
         }
@@ -812,7 +756,6 @@
         }
 
         function placeGlooWallLocally(pos, rot) {
-            if(window.sfx && window.sfx.playGloo) window.sfx.playGloo();
             const geo = new THREE.BoxGeometry(8, 8, 1);
             const mat = new THREE.MeshBasicMaterial({ color: 0x55ffff, transparent: true, opacity: 0.7 });
             const gloo = new THREE.Mesh(geo, mat);
@@ -843,7 +786,6 @@
         function reloadWeapon() {
             if (isReloading || myAmmo === MAX_AMMO || myHp <= 0) return;
             isReloading = true; updateWeaponUI();
-            if(window.sfx && window.sfx.playReload) window.sfx.playReload();
             gunMesh.rotation.x = -Math.PI / 4; 
             setTimeout(() => {
                 myAmmo = MAX_AMMO; isReloading = false;
@@ -856,7 +798,6 @@
             if(myAmmo <= 0) { reloadWeapon(); return; }
             
             myAmmo--; updateWeaponUI();
-            if(window.sfx && window.sfx.playShoot) window.sfx.playShoot();
 
             const muzzle = camera.getObjectByName("muzzle");
             const startPos = new THREE.Vector3(); muzzle.getWorldPosition(startPos);
@@ -893,12 +834,6 @@
                         hitPlayerId = id;
                         const origColor = hitMesh.material.color.getHex();
                         hitMesh.material.color.setHex(0xff0000);
-                        
-                        if(window.sfx) {
-                            if(isHeadshot) window.sfx.playHeadshot();
-                            else window.sfx.playHit();
-                        }
-
                         setTimeout(() => { if(hitMesh.material) hitMesh.material.color.setHex(origColor); }, 200);
                         showFloatingDamage(dmgAmount, endPos);
                         break;
@@ -1187,9 +1122,7 @@
 
                         if (!bot.lastShoot || time - bot.lastShoot > 600) { 
                             bot.lastShoot = time; drawBullet(botPos.clone().setY(4), camera.position);
-                            if(window.sfx && window.sfx.playShoot) window.sfx.playShoot();
                             myHp -= 15; updateHUD(); 
-                            if(window.sfx && window.sfx.playDamage) window.sfx.playDamage();
                             if (isHealing) { isHealing = false; document.getElementById('heal-progress-container').style.display = 'none'; }
                             if(myHp <= 0) { addKillFeedMsg('روبوت', myProfile.name, false); handleDeath(); }
                         }
