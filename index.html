@@ -7,8 +7,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-title" content="Pro FPS">
     
-    <title>Pro FPS - Multiplayer Fix</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111' rx='20'/%3E%3Ccircle cx='50' cy='50' r='35' stroke='%23ffaa00' stroke-width='5' fill='none'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ff0000'/%3E%3Cline x1='50' y1='5' x2='50' y2='25' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='50' y1='95' x2='50' y2='75' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='5' y1='50' x2='25' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='95' y1='50' x2='75' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+
+    <title>Pro FPS - Global Lobby</title>
     <style>
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; -webkit-user-select: none;}
@@ -25,32 +28,36 @@
         @media screen and (orientation: portrait) { #orientation-lock { display: flex !important; } }
 
         #lobby-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; display: none;} 
-        .panel { background: rgba(0,0,0,0.6); padding: 2vh; border-radius: 10px; border: 1px solid #00aaff; pointer-events: auto; backdrop-filter: blur(5px); max-height: 90vh; overflow-y: auto; }
+        .panel { background: rgba(0,0,0,0.7); padding: 2vh; border-radius: 10px; border: 1px solid #00aaff; pointer-events: auto; backdrop-filter: blur(5px); max-height: 90vh; display: flex; flex-direction: column; gap: 1vh;}
         
-        .left-panel { position: absolute; left: 2vw; top: 5vh; width: 35vw; max-width: 280px; display: flex; flex-direction: column; gap: 1vh;}
+        .left-panel { position: absolute; left: 2vw; top: 5vh; width: 35vw; max-width: 280px; }
         .left-panel input[type="text"] { width: 100%; padding: 1vh; background: #222; color: #fff; border: 1px solid #00aaff; text-align: center; font-weight: bold; border-radius: 5px;}
-        .color-picker { display: flex; justify-content: space-between; align-items: center; font-size: min(14px, 2.5vh); }
+        .color-picker { display: flex; justify-content: space-between; align-items: center; font-size: min(14px, 2.5vh); margin-top: 5px; }
         .color-picker input[type="color"] { cursor: pointer; border: none; width: 30px; height: 30px; background: none; }
         
-        .join-box { display: flex; flex-direction: column; gap: 5px; margin-top: 1vh; border-top: 1px solid #555; padding-top: 1vh;}
-        .btn { background: rgba(0, 100, 255, 0.7); border: 2px solid #00aaff; color: white; padding: 1vh; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.2s; font-size: min(14px, 2.5vh);}
-        .btn:active { background: #00aaff; transform: scale(0.95);}
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* قائمة اللاعبين العالمي */
+        .global-players-box { margin-top: 2vh; border-top: 2px solid #555; padding-top: 1vh; flex-grow: 1; overflow-y: auto; max-height: 40vh;}
+        .global-player-item { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 1vh; margin-bottom: 5px; border-radius: 5px; font-size: min(14px, 2.5vh); border-right: 3px solid #00ff00;}
+        .global-player-item.ingame { border-right-color: #ff0000; opacity: 0.7;}
+        .btn-invite { background: #00aaff; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: min(12px, 2vh);}
+        .btn-invite:active { background: #0077cc; }
 
         .host-controls { position: absolute; right: 2vw; top: 5vh; width: 35vw; max-width: 280px; }
         .mode-select { width: 100%; padding: 1vh; margin-bottom: 1vh; background: #333; color: white; border-radius: 5px; }
-        .player-list { max-height: 15vh; overflow-y: auto; margin-bottom: 1vh; font-size: min(14px, 2.5vh); }
+        .player-list { max-height: 30vh; overflow-y: auto; margin-bottom: 1vh; font-size: min(14px, 2.5vh); }
         .player-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; padding: 5px; background: rgba(0,0,0,0.5); border-radius: 4px;}
-        .team-btn { font-size: 10px; padding: 3px 6px; }
-        .team-a { background: #0044aa; border-color: #0066ff;} .team-b { background: #aa0000; border-color: #ff3333;}
-        #btn-start { width: 100%; background: #ffaa00; color: #000; border: none; font-size: min(18px, 3vh); padding: 1.5vh; font-weight: bold; border-radius: 5px;}
+        .team-btn { font-size: 10px; padding: 3px 6px; border: none; border-radius: 3px; cursor: pointer; color: white;}
+        .team-a { background: #0066ff;} .team-b { background: #ff3333;}
+        #btn-start { width: 100%; background: #ffaa00; color: #000; border: none; font-size: min(18px, 3vh); padding: 1.5vh; font-weight: bold; border-radius: 5px; margin-top: auto;}
 
-        .copy-container { display: flex; justify-content: center; align-items: center; gap: 5px; margin-top: 5px; }
-        .copy-code { font-size: min(16px, 2.8vh); background: #222; padding: 5px 10px; border-radius: 4px; border: 1px solid #ffaa00; color: #ffaa00; user-select: all; }
-        .btn-copy { background: #ffaa00; color: #000; border: none; padding: 5px 10px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: min(14px, 2.5vh); transition: 0.2s;}
-        .btn-copy:active { background: #cc8800; transform: scale(0.9); }
-
-        #conn-status { font-size: min(11px, 2vh); color: #aaa; text-align: center; min-height: 2.5vh; margin-top: 0.5vh; }
+        /* نافذة الدعوة */
+        #invite-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200000; display: none; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto;}
+        .invite-box { background: #111; border: 2px solid #00aaff; padding: 3vh 5vw; border-radius: 10px; text-align: center; box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);}
+        .invite-box h3 { color: #ffaa00; margin-top: 0; font-size: max(18px, 3vh);}
+        .invite-btns { display: flex; gap: 10px; justify-content: center; margin-top: 2vh;}
+        .invite-btns button { padding: 1vh 2vw; font-weight: bold; border-radius: 5px; cursor: pointer; border: none; font-size: max(14px, 2.5vh);}
+        .btn-accept { background: #00ff00; color: #000; } .btn-accept:active { background: #00cc00;}
+        .btn-decline { background: #ff3333; color: #fff; } .btn-decline:active { background: #cc0000;}
 
         #game-ui { display: none; }
         #crosshair { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); z-index: 10; pointer-events: none;}
@@ -97,26 +104,35 @@
         .kill-msg .killer { color: #00aaff; } .kill-msg .victim { color: #ff4444; } .kill-msg .hs { color: #ffaa00; margin-right: 5px; font-size: 1.1em; }
         @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; display: none; } }
     </style>
-
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script type="importmap"> { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } } </script>
 </head>
 <body>
 
     <div id="start-screen">
         <h1 style="color: #00aaff; text-shadow: 0 0 15px #00aaff; margin-bottom: 5px;">PRO FPS</h1>
-        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">التحديث الأقوى 🚀</p>
+        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">نظام اللوبي العالمي 🌍</p>
         <button class="btn-start-fs" id="btn-fs">دخول اللعبة</button>
     </div>
 
     <div id="resume-screen">
-        <h2 style="color: #ffaa00; margin-bottom: 20px;">تم الإيقاف مؤقتاً</h2>
-        <button class="btn-start-fs" id="btn-resume">استئناف</button>
+        <h2 style="color: #ffaa00; margin-bottom: 20px;">تم إيقاف اللعبة مؤقتاً</h2>
+        <button class="btn-start-fs" id="btn-resume">استئناف اللعب</button>
+    </div>
+
+    <!-- نافذة الدعوات -->
+    <div id="invite-modal">
+        <div class="invite-box">
+            <h3 id="invite-text">دعوة للعب!</h3>
+            <div class="invite-btns">
+                <button class="btn-accept" id="btn-accept">قبول ✔</button>
+                <button class="btn-decline" id="btn-decline">رفض ✖</button>
+            </div>
+        </div>
     </div>
 
     <div id="orientation-lock">⚠️<br>يرجى تدوير الهاتف بالعرض للعب!</div>
 
     <div id="lobby-ui">
+        <!-- اللوحة اليسرى: التخصيص واللاعبين العالمي -->
         <div class="panel left-panel">
             <h3 style="margin: 0; color: #00aaff; text-align: center; font-size: min(18px, 3vh);">شخصيتي</h3>
             <input type="text" id="my-name" value="مقاتل" placeholder="اسمك">
@@ -124,24 +140,17 @@
             <div class="color-picker">السروال: <input type="color" id="c-pants" value="#222222"></div>
             <div class="color-picker">الشعر: <input type="color" id="c-hair" value="#ffaa00"></div>
             
-            <div class="join-box" id="join-section">
-                <small style="color:#aaa; font-size: min(12px, 2vh);">للانضمام لغرفة صديق:</small>
-                <input type="text" id="friend-id" placeholder="كود الغرفة">
-                <button class="btn" id="btn-join">انضمام ➔</button>
-            </div>
-            
-            <div style="font-size: min(12px, 2vh); color: #ffaa00; text-align: center; margin-top: 1vh;">
-                كود مجموعتك:
-                <div class="copy-container">
-                    <span id="my-id-display" class="copy-code">جارِ الاتصال...</span>
-                    <button class="btn-copy" id="btn-copy-code">نسخ</button>
+            <div class="global-players-box">
+                <small style="color:#aaa; display:block; margin-bottom:5px; text-align:center;">اللاعبون المتصلون الآن 🌍</small>
+                <div id="global-players-list">
+                    <!-- سيتم إضافة اللاعبين هنا برمجياً -->
                 </div>
             </div>
-            <div id="conn-status"></div>
         </div>
 
+        <!-- اللوحة اليمنى: غرفتك وإعدادات المعركة -->
         <div class="panel host-controls" id="host-panel">
-            <h3 style="margin-top:0; color:#ffaa00; text-align: center; font-size: min(18px, 3vh);">المباراة</h3>
+            <h3 style="margin-top:0; color:#ffaa00; text-align: center; font-size: min(18px, 3vh);">مجموعتي الحالية</h3>
             <select class="mode-select" id="mode-select">
                 <option value="bot">تدريب ضد الروبوت</option>
                 <option value="1v1">1 ضد 1</option>
@@ -191,6 +200,20 @@
     </div>
 
     <script>
+        window.sfx = {};
+        window.initAudio = function() {
+            if(window.audioCtx) return;
+            window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const ctx = window.audioCtx;
+            window.sfx.playShoot = () => { if(ctx.state === 'suspended') ctx.resume(); const bS = ctx.sampleRate * 0.1; const b = ctx.createBuffer(1, bS, ctx.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < bS; i++) d[i] = Math.random() * 2 - 1; const n = ctx.createBufferSource(); n.buffer = b; const nf = ctx.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 1000; const g = ctx.createGain(); g.gain.setValueAtTime(0.5, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1); n.connect(nf); nf.connect(g); g.connect(ctx.destination); n.start(); };
+            window.sfx.playHeadshot = () => { if(ctx.state === 'suspended') ctx.resume(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(1200, ctx.currentTime); g.gain.setValueAtTime(1, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.3); };
+            window.sfx.playHit = () => { if(ctx.state === 'suspended') ctx.resume(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(300, ctx.currentTime); o.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.1); g.gain.setValueAtTime(0.5, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.1); };
+            window.sfx.playDamage = () => { if(ctx.state === 'suspended') ctx.resume(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(100, ctx.currentTime); o.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 0.3); g.gain.setValueAtTime(0.8, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.3); };
+            window.sfx.playReload = () => { if(ctx.state === 'suspended') ctx.resume(); const pC = (tO) => { const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'square'; o.frequency.setValueAtTime(800, ctx.currentTime + tO); g.gain.setValueAtTime(0.2, ctx.currentTime + tO); g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + tO + 0.05); o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime + tO); o.stop(ctx.currentTime + tO + 0.05); }; pC(0); pC(0.4); pC(1.2); };
+            window.sfx.playGloo = () => { if(ctx.state === 'suspended') ctx.resume(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(300, ctx.currentTime); o.frequency.linearRampToValueAtTime(900, ctx.currentTime + 0.3); g.gain.setValueAtTime(0.5, ctx.currentTime); g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.4); };
+            window.sfx.playHeal = () => { if(ctx.state === 'suspended') ctx.resume(); const n = [440, 554.37, 659.25, 880]; n.forEach((f, i) => { const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(f, ctx.currentTime + i * 0.1); g.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.1); g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.3); o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime + i * 0.1); o.stop(ctx.currentTime + i * 0.1 + 0.3); }); };
+        };
+
         const goFullscreen = () => {
             const docElm = document.documentElement;
             if (docElm.requestFullscreen) docElm.requestFullscreen().catch(e=>console.log(e));
@@ -199,13 +222,12 @@
         };
 
         document.getElementById('btn-fs').addEventListener('click', () => {
-            goFullscreen();
+            goFullscreen(); window.initAudio();
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('lobby-ui').style.display = 'block';
         });
-
         document.getElementById('btn-resume').addEventListener('click', () => {
-            goFullscreen();
+            goFullscreen(); if(window.audioCtx && window.audioCtx.state === 'suspended') window.audioCtx.resume();
             document.getElementById('resume-screen').style.display = 'none';
         });
 
@@ -214,31 +236,30 @@
                 if (document.getElementById('start-screen').style.display === 'none' && !document.fullscreenElement) {
                     document.getElementById('resume-screen').style.display = 'flex';
                 }
-                if (window.appPeer && window.appPeer.disconnected) window.appPeer.reconnect();
             }
         });
-
-        document.getElementById('btn-copy-code').addEventListener('click', () => {
-            const code = document.getElementById('my-id-display').innerText;
-            if(code && code !== 'جارِ الاتصال...') {
-                navigator.clipboard.writeText(code).then(() => {
-                    const btn = document.getElementById('btn-copy-code');
-                    btn.innerText = 'تم!'; btn.style.background = '#00ff00';
-                    setTimeout(() => { btn.innerText = 'نسخ'; btn.style.background = '#ffaa00'; }, 2000);
-                }).catch(err => alert("النسخ غير مدعوم، انسخ الكود يدوياً"));
-            }
-        });
-
-        // عرض حالة الاتصال للمستخدم (تشخيص)
-        window.setConnStatus = function(text) {
-            const el = document.getElementById('conn-status');
-            if (el) el.innerText = text;
-            console.log('[CONN STATUS]', text);
-        };
     </script>
 
+    <!-- Firebase SDK Modular -->
     <script type="module">
-        import * as THREE from 'three';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, set, update, push, onValue, onChildAdded, onDisconnect, off, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+
+        // إعدادات Firebase الخاصة بك
+        const firebaseConfig = {
+            apiKey: "AIzaSyCu-ZLiqfgvZ5Ew8kSn7Swh1Xflnh0QsH0",
+            authDomain: "shop-clothes-224a3.firebaseapp.com",
+            databaseURL: "https://shop-clothes-224a3-default-rtdb.firebaseio.com",
+            projectId: "shop-clothes-224a3",
+            storageBucket: "shop-clothes-224a3.firebasestorage.app",
+            messagingSenderId: "348017058494",
+            appId: "1:348017058494:web:1da86d8339a0b76a350cef",
+            measurementId: "G-N8WMR67N0X"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
         const mapThemes = [
             { type: 'forest', name: "الغابة الخضراء", bg: 0x87CEEB, floor: 0x2d5a27, rock: 0x696969, trunk: 0x5c4033, leaf: 0x228b22, border: 0x3b5e2b },
@@ -253,10 +274,12 @@
             { type: 'autumn', name: "غابة الخريف", bg: 0xffa500, floor: 0x8b4513, rock: 0x696969, trunk: 0x4a3020, leaf: 0xd2691e, border: 0xa0522d }
         ];
 
-        let peer, myId, isHost = true;
-        let connections = {}; 
-        let myProfile = { name: 'مقاتل', shirt: '#0055ff', pants: '#222222', hair: '#ffaa00' };
+        let myId, currentRoomId, isHost = true;
+        let globalRef, myGlobalRef, myInvitesRef;
+        let roomRef, playersRef, myPlayerRef, actionsRef, stateRef;
+        
         let playersData = {}; 
+        let myProfile = { name: 'مقاتل', shirt: '#0055ff', pants: '#222222', hair: '#ffaa00' };
         let myTeam = 'A', gameMode = 'bot';
 
         let camera, scene, renderer, walls = [], lobbyEnv = new THREE.Group(), currentMapObjects = new THREE.Group(); 
@@ -268,6 +291,7 @@
         let isAiming = false;
         
         let prevTime = performance.now();
+        let lastNetworkUpdate = 0;
         
         const MAX_HP = 200;
         let myHp = MAX_HP, isHealing = false, healTime = 0;
@@ -280,286 +304,267 @@
         let teamScoreA = 0, teamScoreB = 0, currentRound = 1;
         let aliveA = 0, aliveB = 0;
 
-        // ==================== الشبكة (مُصلّحة) ====================
-        // ضع بيانات حسابك المجاني من dashboard.metered.ca هنا.
-        // إذا تركتهما فارغين، سيستعمل الكود تلقائياً سيرفر demo عمومي
-        // (openrelay) وهو أضعف استقراراً لكنه يشتغل بدون تسجيل.
-        const METERED_APP = '';   // مثال: 'yourapp'  (يصير yourapp.metered.live)
-        const METERED_KEY = '';   // الـ API Key من اللوحة (وليس الـ Secret Key)
+        function initFirebaseNetwork() {
+            myId = 'player_' + Math.random().toString(36).substr(2, 6);
+            
+            // 1. الاتصال باللوبي العالمي
+            globalRef = ref(db, 'global_lobby');
+            myGlobalRef = ref(db, 'global_lobby/' + myId);
+            myInvitesRef = ref(db, 'invites/' + myId);
+            
+            set(myGlobalRef, { name: myProfile.name, status: 'idle' });
+            onDisconnect(myGlobalRef).remove();
+            onDisconnect(myInvitesRef).remove();
 
-        const FALLBACK_ICE_SERVERS = [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-            { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-            { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
-        ];
-
-        let currentIceServers = FALLBACK_ICE_SERVERS;
-
-        // يجلب TURN credentials حقيقية من حسابك (أكثر استقراراً من demo عمومي).
-        // عند الفشل (لا حساب، لا إنترنت للـ API، إلخ) يرجع للقائمة الاحتياطية
-        // فلا ينكسر شيء حتى بدون تسجيل.
-        async function fetchIceServers() {
-            if (!METERED_APP || !METERED_KEY) return FALLBACK_ICE_SERVERS;
-            try {
-                const res = await fetch(`https://${METERED_APP}.metered.live/api/v1/turn/credentials?apiKey=${METERED_KEY}`);
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                const servers = await res.json();
-                if (Array.isArray(servers) && servers.length) return servers;
-                throw new Error('empty response');
-            } catch (e) {
-                console.warn('Metered TURN fetch failed, using fallback:', e);
-                return FALLBACK_ICE_SERVERS;
-            }
-        }
-
-        async function initNetwork() {
-            myId = 'fps_' + Math.random().toString(36).substr(2, 5);
-            setConnStatus('جارِ تجهيز الاتصال...');
-            currentIceServers = await fetchIceServers();
-            peer = new Peer(myId, { config: { 'iceServers': currentIceServers } });
-            window.appPeer = peer;
-
-            peer.on('open', (id) => {
-                document.getElementById('my-id-display').innerText = id;
-                setConnStatus('جاهز — شارك الكود مع صديقك');
-            });
-
-            peer.on('error', (err) => {
-                console.error('PeerJS error:', err.type, err);
-                setConnStatus('خطأ: ' + err.type);
-                const joinBtn = document.getElementById('btn-join');
-                if (joinBtn) { joinBtn.innerText = 'انضمام ➔'; joinBtn.disabled = false; }
-            });
-
-            peer.on('disconnected', () => {
-                setConnStatus('انقطع الاتصال بسيرفر التنسيق، جارِ إعادة المحاولة...');
-                setTimeout(() => { if (peer && !peer.destroyed) peer.reconnect(); }, 1000);
-            });
-
-            peer.on('connection', (conn) => {
-                isHost = true; connections[conn.peer] = conn; setupConnectionEvents(conn);
-                // لا نمسح بيانات اللاعب إذا كانت موجودة أصلاً (حالة إعادة اتصال)
-                if (!playersData[conn.peer]) {
-                    playersData[conn.peer] = { team: 'B', hp: MAX_HP, profile: { name: 'ضيف', shirt: '#fff', pants: '#fff', hair: '#fff' }, mesh: null, lastShot: 0 };
+            // الاستماع للاعبين المتاحين للعب
+            onValue(globalRef, (snap) => {
+                const players = snap.val() || {};
+                const listEl = document.getElementById('global-players-list');
+                listEl.innerHTML = '';
+                for(let id in players) {
+                    if(id === myId) continue;
+                    let p = players[id];
+                    let isIdle = p.status === 'idle';
+                    let statusText = isIdle ? '🟢 متاح' : '🔴 في لعبة';
+                    let cssClass = isIdle ? 'global-player-item' : 'global-player-item ingame';
+                    let btnHtml = isIdle ? `<button class="btn-invite" onclick="invitePlayer('${id}')">إرسال دعوة</button>` : '';
+                    
+                    listEl.innerHTML += `<div class="${cssClass}"><span>${p.name} <small style="color:#aaa;">${statusText}</small></span> ${btnHtml}</div>`;
                 }
-                setTimeout(() => { updateLobbyUI(); broadcastLobbyState(); }, 1000);
             });
 
-            document.getElementById('btn-join').addEventListener('click', () => attemptJoin(false));
-
-            // forceRelay=true يجبر الاتصال على المرور حصرياً عبر TURN (relay)،
-            // متجاهلاً محاولات الاتصال المباشر. أبطأ قليلاً لكنه يخترق أغلب
-            // أنواع الـ NAT الصارمة (4G المتماثل / CGNAT) التي تفشل معها
-            // المحاولة العادية. نستعملها فقط كخطة بديلة تلقائية بعد فشل أول محاولة.
-            function attemptJoin(forceRelay) {
-                const friendId = document.getElementById('friend-id').value.trim();
-                if(!friendId) return;
-                const joinBtn = document.getElementById('btn-join');
-                joinBtn.innerText = forceRelay ? "محاولة أخيرة (Relay)..." : "جارِ الاتصال...";
-                joinBtn.disabled = true;
-                setConnStatus(forceRelay ? 'جارِ الإجبار عبر TURN فقط...' : 'جارِ محاولة الاتصال...');
-                isHost = false;
-
-                const connConfig = { iceServers: currentIceServers };
-                if (forceRelay) connConfig.iceTransportPolicy = 'relay';
-
-                let conn = peer.connect(friendId, { reliable: true, config: connConfig });
-                connections[friendId] = conn;
-                setupConnectionEvents(conn);
-
-                setTimeout(() => {
-                    if (!conn.open) {
-                        try { conn.close(); } catch(e) {}
-                        delete connections[friendId];
-                        if (!forceRelay) {
-                            attemptJoin(true); // إعادة محاولة تلقائية بإجبار relay-only
-                        } else {
-                            setConnStatus('فشل الاتصال حتى مع الإجبار عبر relay. تأكد من الكود، أو أن الشبكة تحجب WebRTC كلياً.');
-                            joinBtn.innerText = "انضمام ➔"; joinBtn.disabled = false;
-                        }
-                    }
-                }, 12000);
-            }
-
-            document.getElementById('btn-start').addEventListener('click', () => {
-                gameMode = document.getElementById('mode-select').value;
-                teamScoreA = 0; teamScoreB = 0; currentRound = 1;
-                startNextRound();
+            // الاستماع للدعوات الواردة
+            onChildAdded(myInvitesRef, (snap) => {
+                const invite = snap.val();
+                const inviteKey = snap.key;
+                const modal = document.getElementById('invite-modal');
+                document.getElementById('invite-text').innerText = `تلقيت دعوة للعب من ${invite.senderName} 🎮`;
+                modal.style.display = 'flex';
+                
+                // قبول الدعوة
+                document.getElementById('btn-accept').onclick = () => {
+                    modal.style.display = 'none';
+                    set(ref(db, 'invites/' + myId + '/' + inviteKey), null);
+                    joinRoom(invite.roomId);
+                };
+                
+                // رفض الدعوة
+                document.getElementById('btn-decline').onclick = () => {
+                    modal.style.display = 'none';
+                    set(ref(db, 'invites/' + myId + '/' + inviteKey), null);
+                };
             });
 
+            // 2. إنشاء غرفة افتراضية خاصة بي بمجرد الدخول
+            createMyOwnRoom();
+
+            // إعدادات تغيير الملف الشخصي
             const updateMyProfile = () => {
                 myProfile.name = document.getElementById('my-name').value || 'مقاتل';
                 myProfile.shirt = document.getElementById('c-shirt').value;
                 myProfile.pants = document.getElementById('c-pants').value;
                 myProfile.hair = document.getElementById('c-hair').value;
                 applyProfileToMesh(myLobbyMesh, myProfile);
-                broadcast({ type: 'PROFILE_UPDATE', profile: myProfile });
+                
+                update(myGlobalRef, { name: myProfile.name });
+                if(myPlayerRef) update(myPlayerRef, { profile: myProfile });
             };
-            
             document.getElementById('my-name').addEventListener('input', updateMyProfile);
             document.getElementById('c-shirt').addEventListener('input', updateMyProfile);
             document.getElementById('c-pants').addEventListener('input', updateMyProfile);
             document.getElementById('c-hair').addEventListener('input', updateMyProfile);
+
+            // زر بدء المعركة
+            document.getElementById('btn-start').addEventListener('click', () => {
+                if(!isHost) return;
+                gameMode = document.getElementById('mode-select').value;
+                teamScoreA = 0; teamScoreB = 0; currentRound = 1;
+                startNextRound();
+            });
         }
 
-        function broadcast(data) { for(let id in connections) if(connections[id].open) connections[id].send(data); }
+        function createMyOwnRoom() {
+            detachRoomListeners(); // تنظيف الغرفة القديمة إذا وجدت
+            currentRoomId = myId;
+            isHost = true;
+            setupRefs(currentRoomId);
+            
+            // أنا المضيف في غرفتي
+            onDisconnect(myPlayerRef).remove();
+            set(myPlayerRef, { team: 'A', hp: MAX_HP, profile: myProfile, pos: {x:0, y:0, z:0}, rot: 0, isMoving: false });
+            update(myGlobalRef, { status: 'idle' });
+            setupRoomListeners();
+        }
 
-        function setupConnectionEvents(conn) {
-            let profileAcked = false;
-            let profileRetries = 0;
+        function joinRoom(roomId) {
+            detachRoomListeners(); // تنظيف الغرفة الحالية
+            set(myPlayerRef, null); // أخرج من غرفتي السابقة
+            
+            currentRoomId = roomId;
+            isHost = false;
+            document.getElementById('mode-select').disabled = true; // إخفاء التحكم باللعبة
+            document.getElementById('btn-start').style.display = 'none';
+            
+            setupRefs(currentRoomId);
+            
+            // أدخل الغرفة كضيف
+            onDisconnect(myPlayerRef).remove();
+            set(myPlayerRef, { team: 'B', hp: MAX_HP, profile: myProfile, pos: {x:0, y:0, z:0}, rot: 0, isMoving: false });
+            update(myGlobalRef, { status: 'in-room' });
+            setupRoomListeners();
+        }
 
-            // إعادة إرسال البروفايل حتى يصل التأكيد (ACK) — يحل مشكلة
-            // الرسالة الأولى الضائعة بسبب اتصال غير مستقر
-            const sendProfileWithRetry = () => {
-                if (profileAcked || profileRetries >= 6 || !conn.open) return;
-                profileRetries++;
-                conn.send({ type: 'PROFILE_UPDATE', profile: myProfile });
-                setTimeout(sendProfileWithRetry, 1000);
-            };
+        // إرسال دعوة لاعب (وظيفة عامة للوصول من HTML)
+        window.invitePlayer = function(targetId) {
+            push(ref(db, 'invites/' + targetId), {
+                senderId: myId,
+                senderName: myProfile.name,
+                roomId: currentRoomId
+            });
+            const btn = event.target;
+            btn.innerText = 'تم الإرسال ✔';
+            btn.style.background = '#00ff00';
+            btn.style.color = '#000';
+            setTimeout(() => { btn.innerText = 'إرسال دعوة'; btn.style.background = '#00aaff'; btn.style.color = '#fff';}, 2000);
+        };
 
-            conn.on('open', () => { 
-                setConnStatus('متصل! جارِ مزامنة اللاعبين...');
-                if(!isHost) {
-                    document.getElementById('host-panel').style.display = 'none'; 
-                    document.getElementById('join-section').innerHTML = '<p style="color:#00ff00; font-weight:bold; margin:0;">✔ متصل بالغرفة!</p>';
+        function setupRefs(roomId) {
+            roomRef = ref(db, 'rooms/' + roomId);
+            playersRef = ref(db, 'rooms/' + roomId + '/players');
+            myPlayerRef = ref(db, 'rooms/' + roomId + '/players/' + myId);
+            actionsRef = ref(db, 'rooms/' + roomId + '/actions');
+            stateRef = ref(db, 'rooms/' + roomId + '/state');
+        }
+
+        function detachRoomListeners() {
+            if(playersRef) off(playersRef);
+            if(stateRef) off(stateRef);
+            if(actionsRef) off(actionsRef);
+            
+            // إزالة شخصيات الغرفة القديمة من الشاشة
+            for(let id in playersData) {
+                if(id !== myId && playersData[id].mesh) scene.remove(playersData[id].mesh);
+            }
+            playersData = {};
+        }
+
+        function setupRoomListeners() {
+            // الاستماع للاعبين
+            onValue(playersRef, (snap) => {
+                let data = snap.val() || {};
+                
+                for(let id in data) {
+                    if(id === myId && id !== 'bot') { myTeam = data[id].team; continue; }
+                    
+                    if(!playersData[id]) {
+                        playersData[id] = { hp: data[id].hp, mesh: createMinecraftCharacter(data[id].profile), lastShot: 0 };
+                        if(scene) scene.add(playersData[id].mesh);
+                    }
+                    
+                    playersData[id].team = data[id].team;
+                    playersData[id].hp = data[id].hp;
+                    playersData[id].profile = data[id].profile;
+                    applyProfileToMesh(playersData[id].mesh, data[id].profile);
+
+                    if (data[id].pos && playersData[id].mesh) {
+                        playersData[id].mesh.position.set(data[id].pos.x, data[id].pos.y, data[id].pos.z);
+                        playersData[id].mesh.rotation.y = data[id].rot;
+                        animateCharacter(playersData[id].mesh, data[id].isMoving, performance.now());
+                    }
                 }
-
-                // مراقبة حالة ICE الفعلية لتشخيص مشاكل الشبكة مباشرة
-                if (conn.peerConnection) {
-                    conn.peerConnection.oniceconnectionstatechange = () => {
-                        const state = conn.peerConnection.iceConnectionState;
-                        console.log('ICE state [' + conn.peer + ']:', state);
-                        if (state === 'connected' || state === 'completed') {
-                            setConnStatus('الاتصال مستقر ✔');
-                        } else if (state === 'failed' || state === 'disconnected') {
-                            setConnStatus('ضعف بالاتصال (' + state + ') — جرب شبكة أخرى');
-                        }
-                    };
+                
+                for(let id in playersData) {
+                    if(id !== 'bot' && !data[id] && id !== myId) {
+                        scene.remove(playersData[id].mesh);
+                        delete playersData[id];
+                    }
                 }
-
-                sendProfileWithRetry();
-                if(!isHost) conn.send({ type: 'REQUEST_LOBBY_STATE' });
+                updateLobbyUI();
             });
 
-            conn.on('error', (err) => {
-                console.error('Connection error [' + conn.peer + ']:', err);
-                setConnStatus('خطأ بالاتصال مع اللاعب');
-            });
+            // الاستماع لحالة اللعبة
+            onValue(stateRef, (snap) => {
+                let state = snap.val();
+                if(!state) return;
 
-            conn.on('close', () => {
-                setConnStatus('انقطع اتصال أحد اللاعبين');
-                delete connections[conn.peer];
-                if (playersData[conn.peer]) {
-                    if (playersData[conn.peer].mesh && scene) scene.remove(playersData[conn.peer].mesh);
-                    delete playersData[conn.peer];
+                if (state.type === 'START_ROUND' && !isHost) {
+                    gameMode = state.mode; teamScoreA = state.scoreA; teamScoreB = state.scoreB; currentRound = state.round;
+                    buildMap(state.map, state.themeIdx); 
+                    let index = Object.keys(playersData).indexOf(myId); if(index === -1) index = 1;
+                    switchToGameScene(index, state.themeIdx);
                 }
-                if (isHost) updateLobbyUI();
+                else if (state.type === 'ROUND_OVER') {
+                    handleRoundOver(state.winnerTeam, state.scoreA, state.scoreB, state.matchOver);
+                }
+                else if (state.type === 'BACK_TO_LOBBY') {
+                    returnToLobby();
+                }
             });
 
-            conn.on('data', (data) => {
-                try {
-                    if (data.type === 'REQUEST_LOBBY_STATE' && isHost) {
-                        broadcastLobbyState();
-                    }
-                    else if (data.type === 'PROFILE_UPDATE') {
-                        if (!playersData[conn.peer]) playersData[conn.peer] = { team: 'B', hp: MAX_HP, lastShot: 0 };
-                        playersData[conn.peer].profile = data.profile;
-                        if (!playersData[conn.peer].mesh) {
-                            playersData[conn.peer].mesh = createMinecraftCharacter(data.profile);
-                            if(scene) scene.add(playersData[conn.peer].mesh);
-                        } else applyProfileToMesh(playersData[conn.peer].mesh, data.profile);
-                        organizeLobbyPositions(); updateLobbyUI();
-                        conn.send({ type: 'PROFILE_ACK' });
-                        if (isHost) broadcastLobbyState();
-                    }
-                    else if (data.type === 'PROFILE_ACK') {
-                        profileAcked = true;
-                    }
-                    else if (data.type === 'LOBBY_STATE' && !isHost) {
-                        syncLobbyState(data.state);
-                        // نعيد إرسال البروفايل مرة أخرى لضمان أن المضيف يملك آخر نسخة
-                        sendProfileWithRetry();
-                    }
-                    else if (data.type === 'START_ROUND') {
-                        gameMode = data.mode; myTeam = data.myTeam; teamScoreA = data.scoreA; teamScoreB = data.scoreB; currentRound = data.round;
-                        buildMap(data.map, data.themeIdx); switchToGameScene(data.spawnIndex, data.themeIdx);
-                    }
-                    else if (data.type === 'ROUND_OVER') handleRoundOver(data.winnerTeam, data.scoreA, data.scoreB, data.matchOver);
-                    else if (data.type === 'BACK_TO_LOBBY') returnToLobby();
-                    else if (data.type === 'MOVE') {
-                        if (playersData[conn.peer] && playersData[conn.peer].mesh) {
-                            playersData[conn.peer].mesh.position.set(data.pos.x, 0, data.pos.z);
-                            playersData[conn.peer].mesh.rotation.y = data.rot;
-                            animateCharacter(playersData[conn.peer].mesh, data.isMoving, performance.now());
-                        }
-                    }
-                    else if (data.type === 'BULLET_FIRED') {
-                        drawBullet(data.start, data.end);
-                        if(playersData[conn.peer]) playersData[conn.peer].lastShot = performance.now(); 
-                    }
-                    else if (data.type === 'GLOO_WALL') {
-                        placeGlooWallLocally(new THREE.Vector3(data.pos.x, data.pos.y, data.pos.z), data.rot);
-                    }
-                    else if (data.type === 'HIT') {
-                        if(myHp <= 0) return; 
-                        myHp -= data.damage; updateHUD();
+            // الاستماع للأحداث (إطلاق نار وغيره)
+            onChildAdded(actionsRef, (snap) => {
+                let action = snap.val();
+                if(!action || action.sender === myId) return; 
+
+                if (action.type === 'BULLET_FIRED') {
+                    drawBullet(action.start, action.end);
+                    if(window.sfx && window.sfx.playShoot) window.sfx.playShoot(); 
+                    if(playersData[action.sender]) playersData[action.sender].lastShot = performance.now(); 
+                }
+                else if (action.type === 'GLOO_WALL') {
+                    placeGlooWallLocally(new THREE.Vector3(action.pos.x, action.pos.y, action.pos.z), action.rot);
+                    if(window.sfx && window.sfx.playGloo) window.sfx.playGloo(); 
+                }
+                else if (action.type === 'HIT') {
+                    if (action.victim === myId && myHp > 0) {
+                        myHp -= action.damage; updateHUD();
+                        if(window.sfx && window.sfx.playDamage) window.sfx.playDamage();
+                        update(myPlayerRef, { hp: myHp });
+
                         if (myHp <= 0) {
-                            if(!isHost) conn.send({ type: 'I_DIED', team: myTeam });
-                            broadcast({ type: 'DEATH_EVENT', killerId: conn.peer, victimName: myProfile.name, headshot: data.headshot });
-                            if (playersData[conn.peer] && playersData[conn.peer].profile) {
-                                addKillFeedMsg(playersData[conn.peer].profile.name, myProfile.name, data.headshot);
-                            }
+                            push(actionsRef, { type: 'DEATH', killer: action.sender, victim: myId, hs: action.hs });
                             handleDeath();
                         }
                     }
-                    else if (data.type === 'I_DIED' && isHost) {
-                        if (data.team === 'A') aliveA--; else aliveB--;
+                }
+                else if (action.type === 'DEATH') {
+                    let kName = action.killer === 'bot' ? 'روبوت' : (playersData[action.killer]?.profile?.name || 'مجهول');
+                    if(action.killer === myId) kName = myProfile.name;
+                    let vName = action.victim === myId ? myProfile.name : (playersData[action.victim]?.profile?.name || 'مجهول');
+                    
+                    addKillFeedMsg(kName, vName, action.hs);
+
+                    if (isHost) {
+                        let deadTeam = action.victim === myId ? myTeam : playersData[action.victim]?.team;
+                        if(deadTeam === 'A') aliveA--; else aliveB--;
                         checkRoundEnd();
                     }
-                    else if (data.type === 'DEATH_EVENT') {
-                        let kName = data.killerId === 'bot' ? 'روبوت' : (playersData[data.killerId]?.profile?.name || 'مجهول');
-                        if (data.killerId === myId) kName = myProfile.name;
-                        addKillFeedMsg(kName, data.victimName, data.headshot);
-                    }
-                } catch (err) { console.error(err); }
+                }
             });
         }
 
-        function broadcastLobbyState() {
-            let state = {};
-            for(let id in playersData) if (id !== 'bot') state[id] = { team: playersData[id].team, profile: playersData[id].profile };
-            state[myId] = { team: myTeam, profile: myProfile };
-            broadcast({ type: 'LOBBY_STATE', state: state });
-        }
-
-        function syncLobbyState(state) {
-            for(let id in state) {
-                if (id === myId) { myTeam = state[id].team; continue; }
-                if (!playersData[id]) {
-                    playersData[id] = { hp: MAX_HP, mesh: createMinecraftCharacter(state[id].profile), lastShot: 0 };
-                }
-                playersData[id].team = state[id].team; playersData[id].profile = state[id].profile;
-                applyProfileToMesh(playersData[id].mesh, state[id].profile);
-                if (scene && !playersData[id].mesh.parent) scene.add(playersData[id].mesh);
-            }
-            organizeLobbyPositions();
-        }
-
         function updateLobbyUI() {
-            if (!isHost) return;
             const list = document.getElementById('player-list');
-            list.innerHTML = `<div class="player-item">أنت (المضيف) <button class="btn team-btn ${myTeam==='A'?'team-a':'team-b'}" onclick="toggleMyTeam()">فريق ${myTeam}</button></div>`;
-            for (let id in connections) {
-                if(!playersData[id]) continue;
+            list.innerHTML = `<div class="player-item">أنت ${isHost?'(المضيف)':''} <button class="btn team-btn ${myTeam==='A'?'team-a':'team-b'}" onclick="toggleMyTeam()">فريق ${myTeam}</button></div>`;
+            for (let id in playersData) {
+                if(id === 'bot' || id === myId) continue;
                 const p = playersData[id];
                 list.innerHTML += `<div class="player-item">${p.profile.name} <button class="btn team-btn ${p.team === 'A' ? 'team-a' : 'team-b'}" onclick="toggleTeam('${id}')">فريق ${p.team}</button></div>`;
             }
-            broadcastLobbyState();
         }
-        window.toggleTeam = function(id) { if(playersData[id]) { playersData[id].team = playersData[id].team === 'A' ? 'B' : 'A'; updateLobbyUI(); } };
-        window.toggleMyTeam = function() { myTeam = myTeam === 'A' ? 'B' : 'A'; updateLobbyUI(); };
+        
+        window.toggleTeam = function(id) { 
+            if(!isHost) return; // المضيف فقط يغير فرق الآخرين
+            if(playersData[id]) { 
+                let newTeam = playersData[id].team === 'A' ? 'B' : 'A';
+                update(ref(db, 'rooms/' + currentRoomId + '/players/' + id), { team: newTeam });
+            } 
+        };
+        window.toggleMyTeam = function() { 
+            myTeam = myTeam === 'A' ? 'B' : 'A'; 
+            update(myPlayerRef, { team: myTeam });
+            updateLobbyUI(); 
+        };
 
         function organizeLobbyPositions() {
             if(myLobbyMesh) { myLobbyMesh.position.set(0, 0, -15); myLobbyMesh.rotation.y = 0; }
@@ -598,10 +603,6 @@
             gunMesh.add(muzzle); gunMesh.visible = false;
 
             myLobbyMesh = createMinecraftCharacter(myProfile); scene.add(myLobbyMesh);
-            organizeLobbyPositions();
-
-            playersData['bot'] = { team: 'B', hp: MAX_HP, profile: {name: 'روبوت', shirt: '#ff0000', pants: '#111', hair: '#555'}, mesh: createMinecraftCharacter({name: 'روبوت', shirt: '#ff0000', pants: '#111', hair: '#555'}), lastShot: 0 };
-            playersData['bot'].mesh.position.set(0, -100, 0); scene.add(playersData['bot'].mesh);
 
             raycaster = new THREE.Raycaster();
             renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -670,24 +671,22 @@
 
         function startNextRound() {
             if(!isHost) return;
+            update(myGlobalRef, { status: 'in-game' });
+            
             const themeIdx = Math.floor(Math.random() * mapThemes.length);
             const mapArr = generateAdvancedMap(); buildMap(mapArr, themeIdx);
             
             aliveA = 0; aliveB = 0;
             if(gameMode === 'bot') {
-                aliveA = 1; aliveB = 1; playersData['bot'].hp = MAX_HP; playersData['bot'].mesh.position.set(50, 0, 50); playersData['bot'].mesh.visible = true;
+                aliveA = 1; aliveB = 1; 
+                update(ref(db, 'rooms/' + currentRoomId + '/players/bot'), { team: 'B', hp: MAX_HP, profile: {name: 'روبوت', shirt: '#ff0000', pants: '#111', hair: '#555'}, pos: {x:50, y:0, z:50}, rot: 0, isMoving: false });
             } else {
                 if(myTeam === 'A') aliveA++; else aliveB++;
-                for(let id in connections) { if(playersData[id].team === 'A') aliveA++; else aliveB++; }
+                for(let id in playersData) { if(playersData[id].team === 'A') aliveA++; else aliveB++; }
             }
 
             switchToGameScene(0, themeIdx); 
-            if (gameMode !== 'bot') {
-                let spawnIndex = 1;
-                for(let id in connections) {
-                    connections[id].send({ type: 'START_ROUND', mode: gameMode, map: mapArr, myTeam: playersData[id].team, spawnIndex: spawnIndex++, round: currentRound, scoreA: teamScoreA, scoreB: teamScoreB, themeIdx: themeIdx });
-                }
-            }
+            set(stateRef, { type: 'START_ROUND', mode: gameMode, map: mapArr, round: currentRound, scoreA: teamScoreA, scoreB: teamScoreB, themeIdx: themeIdx });
         }
 
         function generateAdvancedMap() {
@@ -843,8 +842,7 @@
                 let winnerTeam = aliveA > 0 ? 'A' : 'B';
                 if (winnerTeam === 'A') teamScoreA++; else teamScoreB++;
                 let matchOver = (teamScoreA >= 4 || teamScoreB >= 4);
-                broadcast({ type: 'ROUND_OVER', winnerTeam: winnerTeam, scoreA: teamScoreA, scoreB: teamScoreB, matchOver: matchOver });
-                handleRoundOver(winnerTeam, teamScoreA, teamScoreB, matchOver);
+                set(stateRef, { type: 'ROUND_OVER', winnerTeam: winnerTeam, scoreA: teamScoreA, scoreB: teamScoreB, matchOver: matchOver });
             }
         }
 
@@ -855,7 +853,7 @@
                 let iWon = (myTeam === winnerTeam);
                 msg.innerHTML = iWon ? `🏆 فريقك انتصر بالمباراة! 🏆<br><br>العودة للوبي...` : `💀 فريق الخصم انتصر بالمباراة 💀<br><br>العودة للوبي...`;
                 msg.style.display = 'flex';
-                if(isHost) setTimeout(() => { broadcast({ type: 'BACK_TO_LOBBY' }); returnToLobby(); }, 4000);
+                if(isHost) setTimeout(() => { set(stateRef, { type: 'BACK_TO_LOBBY' }); }, 4000);
             } else {
                 let iWon = (myTeam === winnerTeam);
                 msg.innerHTML = iWon ? `فريقك فاز بالجولة!` : `الخصم فاز بالجولة!`;
@@ -866,6 +864,8 @@
 
         function returnToLobby() {
             inLobby = true; isPlaying = false;
+            update(myGlobalRef, { status: 'idle' });
+            
             document.getElementById('game-ui').style.display = 'none';
             document.getElementById('lobby-ui').style.display = 'block';
             document.getElementById('msg-overlay').style.display = 'none';
@@ -880,6 +880,7 @@
         }
 
         function placeGlooWallLocally(pos, rot) {
+            if(window.sfx && window.sfx.playGloo) window.sfx.playGloo();
             const geo = new THREE.BoxGeometry(8, 8, 1);
             const mat = new THREE.MeshBasicMaterial({ color: 0x55ffff, transparent: true, opacity: 0.7 });
             const gloo = new THREE.Mesh(geo, mat);
@@ -910,6 +911,7 @@
         function reloadWeapon() {
             if (isReloading || myAmmo === MAX_AMMO || myHp <= 0) return;
             isReloading = true; updateWeaponUI();
+            if(window.sfx && window.sfx.playReload) window.sfx.playReload();
             gunMesh.rotation.x = -Math.PI / 4; 
             setTimeout(() => {
                 myAmmo = MAX_AMMO; isReloading = false;
@@ -922,6 +924,7 @@
             if(myAmmo <= 0) { reloadWeapon(); return; }
             
             myAmmo--; updateWeaponUI();
+            if(window.sfx && window.sfx.playShoot) window.sfx.playShoot();
 
             const muzzle = camera.getObjectByName("muzzle");
             const startPos = new THREE.Vector3(); muzzle.getWorldPosition(startPos);
@@ -958,6 +961,12 @@
                         hitPlayerId = id;
                         const origColor = hitMesh.material.color.getHex();
                         hitMesh.material.color.setHex(0xff0000);
+                        
+                        if(window.sfx) {
+                            if(isHeadshot) window.sfx.playHeadshot();
+                            else window.sfx.playHit();
+                        }
+
                         setTimeout(() => { if(hitMesh.material) hitMesh.material.color.setHex(origColor); }, 200);
                         showFloatingDamage(dmgAmount, endPos);
                         break;
@@ -967,13 +976,12 @@
 
             drawBullet(startPos, endPos); 
 
-            if (gameMode !== 'bot') {
-                for(let id in connections) {
-                    if(!connections[id].open) continue;
-                    connections[id].send({ type: 'BULLET_FIRED', start: startPos, end: endPos });
-                    if(hitPlayerId === id) connections[id].send({ type: 'HIT', damage: dmgAmount, headshot: isHeadshot });
-                }
-            } else if (hitPlayerId === 'bot' && playersData['bot'].hp > 0) {
+            // إرسال الضربة عبر Firebase Actions
+            push(actionsRef, { type: 'BULLET_FIRED', start: {x:startPos.x,y:startPos.y,z:startPos.z}, end: {x:endPos.x,y:endPos.y,z:endPos.z}, sender: myId });
+            if(hitPlayerId && hitPlayerId !== 'bot') {
+                push(actionsRef, { type: 'HIT', victim: hitPlayerId, damage: dmgAmount, headshot: isHeadshot, sender: myId });
+            } 
+            else if (hitPlayerId === 'bot' && playersData['bot'].hp > 0) {
                 playersData['bot'].hp -= dmgAmount;
                 if (playersData['bot'].hp <= 0) {
                     addKillFeedMsg(myProfile.name, 'روبوت', isHeadshot);
@@ -989,12 +997,12 @@
         }
 
         function showFloatingDamage(amount, pos3D) {
-            const vec = pos3D.clone().project(camera);
+            const vec = new THREE.Vector3(pos3D.x, pos3D.y, pos3D.z).project(camera);
             const x = (vec.x * 0.5 + 0.5) * window.innerWidth; const y = (vec.y * -0.5 + 0.5) * window.innerHeight;
             const dmgDiv = document.createElement('div');
             dmgDiv.className = 'dmg-text' + (amount >= 90 ? ' dmg-headshot' : '');
             dmgDiv.innerText = amount >= 90 ? `90` : `-${amount}`;
-            dmgDiv.style.left = `${x}px`; dmgDiv.style.top = `${y}px`;
+            dmgDiv.style.left = `${x}px`;
             document.body.appendChild(dmgDiv);
             setTimeout(() => { if(document.body.contains(dmgDiv)) document.body.removeChild(dmgDiv); }, 800);
         }
@@ -1013,7 +1021,6 @@
             isPlaying = false; isHealing = false; document.getElementById('heal-progress-container').style.display = 'none';
             const msg = document.getElementById('msg-overlay');
             msg.innerHTML = `💀 متت! بانتظار نهاية الجولة... 💀`; msg.style.display = 'flex';
-            if(isHost) { if(myTeam === 'A') aliveA--; else aliveB--; checkRoundEnd(); }
         }
 
         function setupControls() {
@@ -1086,7 +1093,7 @@
                 const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); dir.y = 0; dir.normalize();
                 const pos = camera.position.clone().add(dir.multiplyScalar(6)); pos.y = 4; 
                 placeGlooWallLocally(pos, yaw);
-                if (gameMode !== 'bot') broadcast({ type: 'GLOO_WALL', pos: {x: pos.x, y: pos.y, z: pos.z}, rot: yaw });
+                push(actionsRef, { type: 'GLOO_WALL', pos: {x: pos.x, y: pos.y, z: pos.z}, rot: yaw, sender: myId });
             });
 
             document.getElementById('btn-heal').addEventListener('touchstart', (e) => {
@@ -1150,6 +1157,7 @@
                         if (healTime >= HEAL_DURATION) {
                             isHealing = false; document.getElementById('heal-progress-container').style.display = 'none';
                             myHp = Math.min(MAX_HP, myHp + 75); updateHUD(); showFloatingDamage('+75', camera.position);
+                            update(myPlayerRef, { hp: myHp }); // حفظ الهيل في الداتابيز
                             if(window.sfx && window.sfx.playHeal) window.sfx.playHeal();
                         }
                     }
@@ -1218,11 +1226,13 @@
                     }
                 }
 
-                if (gameMode !== 'bot') {
-                    for(let id in connections) if(connections[id].open) connections[id].send({ type: 'MOVE', pos: { x: camera.position.x, y: 0, z: camera.position.z }, rot: yaw, isMoving: isMoving });
+                // إرسال الحركة لـ Firebase (بمعدل 20 مرة في الثانية لتخفيف الضغط)
+                if (time - lastNetworkUpdate > 50) {
+                    update(myPlayerRef, { pos: { x: camera.position.x, y: 0, z: camera.position.z }, rot: yaw, isMoving: isMoving });
+                    lastNetworkUpdate = time;
                 }
 
-                if (gameMode === 'bot' && playersData['bot'].hp > 0) {
+                if (gameMode === 'bot' && isHost && playersData['bot'].hp > 0) {
                     const bot = playersData['bot']; const botPos = bot.mesh.position; const headPos = botPos.clone().setY(6);
                     const distToPlayer = headPos.distanceTo(camera.position); const dirToPlayer = camera.position.clone().sub(headPos).normalize();
                     
@@ -1240,18 +1250,25 @@
                         else if (distToPlayer < 10) moveDir.sub(fwdV); 
                         moveDir.add(rightV).normalize(); 
                         
+                        let isBotMoving = false;
                         if (new THREE.Raycaster(headPos, moveDir, 0, 3).intersectObjects(walls, true).length === 0) {
                             botPos.add(moveDir.multiplyScalar(14 * delta)); 
-                            animateCharacter(bot.mesh, true, time);
+                            isBotMoving = true;
+                        }
+                        
+                        // تحديث حركة الروبوت في الداتابيز ليراها الجميع
+                        if(time - bot.lastMoveUpdate > 50 || !bot.lastMoveUpdate) {
+                            update(ref(db, 'rooms/' + currentRoomId + '/players/bot'), { pos: {x: botPos.x, y: botPos.y, z: botPos.z}, rot: bot.mesh.rotation.y, isMoving: isBotMoving });
+                            bot.lastMoveUpdate = time;
                         }
 
                         if (!bot.lastShoot || time - bot.lastShoot > 600) { 
-                            bot.lastShoot = time; drawBullet(botPos.clone().setY(4), camera.position);
-                            myHp -= 15; updateHUD(); 
-                            if (isHealing) { isHealing = false; document.getElementById('heal-progress-container').style.display = 'none'; }
-                            if(myHp <= 0) { addKillFeedMsg('روبوت', myProfile.name, false); handleDeath(); }
+                            bot.lastShoot = time; 
+                            push(actionsRef, { type: 'BULLET_FIRED', start: {x:botPos.x, y:4, z:botPos.z}, end: {x:camera.position.x, y:camera.position.y, z:camera.position.z}, sender: 'bot' });
+                            
+                            push(actionsRef, { type: 'HIT', victim: myId, damage: 15, headshot: false, sender: 'bot' });
                         }
-                    } else animateCharacter(bot.mesh, false, time);
+                    }
                 }
                 
                 updateMinimap();
@@ -1266,7 +1283,7 @@
             renderer.render(scene, camera);
         }
 
-        initNetwork(); init3D();
+        initFirebaseNetwork(); init3D();
     </script>
 </body>
 </html>
