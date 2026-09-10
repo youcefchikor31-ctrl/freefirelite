@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-title" content="Pro FPS">
+    <meta name="application-name" content="Pro FPS">
     
-    <title>Pro FPS - Connection Fix</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111' rx='20'/%3E%3Ccircle cx='50' cy='50' r='35' stroke='%23ffaa00' stroke-width='5' fill='none'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ff0000'/%3E%3Cline x1='50' y1='5' x2='50' y2='25' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='50' y1='95' x2='50' y2='75' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='5' y1='50' x2='25' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='95' y1='50' x2='75' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+
+    <title>Pro FPS - Local WiFi Ready</title>
     <style>
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; -webkit-user-select: none;}
@@ -102,13 +107,14 @@
 
     <div id="start-screen">
         <h1 style="color: #00aaff; text-shadow: 0 0 15px #00aaff; margin-bottom: 5px;">PRO FPS</h1>
-        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">باتل رويال</p>
+        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">التطبيق المتكامل</p>
         <button class="btn-start-fs" id="btn-fs">دخول اللعبة</button>
     </div>
 
+    <!-- شاشة الاستئناف بعد العودة من الانستغرام/الماسنجر -->
     <div id="resume-screen">
-        <h2 style="color: #ffaa00; margin-bottom: 20px;">تم الإيقاف مؤقتاً</h2>
-        <button class="btn-start-fs" id="btn-resume">استئناف</button>
+        <h2 style="color: #ffaa00; margin-bottom: 20px;">تم إيقاف اللعبة مؤقتاً</h2>
+        <button class="btn-start-fs" id="btn-resume">استئناف اللعب</button>
     </div>
 
     <div id="orientation-lock">⚠️<br>يرجى تدوير الهاتف بالعرض للعب!</div>
@@ -187,6 +193,7 @@
     </div>
 
     <script>
+        // إعدادات الصوت الاصطناعية (Web Audio API)
         window.sfx = {};
         window.initAudio = function() {
             if(window.audioCtx) return;
@@ -195,13 +202,17 @@
 
             window.sfx.playShoot = () => {
                 if(ctx.state === 'suspended') ctx.resume();
-                const bufferSize = ctx.sampleRate * 0.1; const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-                const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                const bufferSize = ctx.sampleRate * 0.1;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
                 const noise = ctx.createBufferSource(); noise.buffer = buffer;
                 const noiseFilter = ctx.createBiquadFilter(); noiseFilter.type = 'lowpass'; noiseFilter.frequency.value = 1000;
                 const gain = ctx.createGain(); gain.gain.setValueAtTime(0.5, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-                noise.connect(noiseFilter); noiseFilter.connect(gain); gain.connect(ctx.destination); noise.start();
+                noise.connect(noiseFilter); noiseFilter.connect(gain); gain.connect(ctx.destination);
+                noise.start();
             };
+
             window.sfx.playHeadshot = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const osc = ctx.createOscillator(); const gain = ctx.createGain();
@@ -209,6 +220,7 @@
                 gain.gain.setValueAtTime(1, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
                 osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.3);
             };
+
             window.sfx.playHit = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const osc = ctx.createOscillator(); const gain = ctx.createGain();
@@ -216,6 +228,7 @@
                 gain.gain.setValueAtTime(0.5, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
                 osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
             };
+
             window.sfx.playDamage = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const osc = ctx.createOscillator(); const gain = ctx.createGain();
@@ -223,6 +236,7 @@
                 gain.gain.setValueAtTime(0.8, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
                 osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.3);
             };
+
             window.sfx.playReload = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const playClick = (timeOffset) => {
@@ -233,6 +247,7 @@
                 };
                 playClick(0); playClick(0.4); playClick(1.2);
             };
+
             window.sfx.playGloo = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const osc = ctx.createOscillator(); const gain = ctx.createGain();
@@ -240,6 +255,7 @@
                 gain.gain.setValueAtTime(0.5, ctx.currentTime); gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
                 osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.4);
             };
+
             window.sfx.playHeal = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const notes = [440, 554.37, 659.25, 880];
@@ -252,11 +268,15 @@
             };
         };
 
+        // زر الدخول وإجبار وضع الشاشة الكاملة والعرض
         const goFullscreen = () => {
             const docElm = document.documentElement;
             if (docElm.requestFullscreen) docElm.requestFullscreen().catch(e=>console.log(e));
             else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
-            if (screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(e => console.log(e)); }
+            
+            if (screen.orientation && screen.orientation.lock) { 
+                screen.orientation.lock('landscape').catch(e => console.log('Orientation lock failed:', e)); 
+            }
         };
 
         document.getElementById('btn-fs').addEventListener('click', () => {
@@ -272,22 +292,30 @@
             document.getElementById('resume-screen').style.display = 'none';
         });
 
+        // نظام الحفاظ على الجلسة (Session Persistence) عند العودة من تطبيق آخر
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "visible") {
                 if (document.getElementById('start-screen').style.display === 'none' && !document.fullscreenElement) {
                     document.getElementById('resume-screen').style.display = 'flex';
                 }
-                if (window.appPeer && window.appPeer.disconnected) window.appPeer.reconnect();
+                if (window.appPeer && window.appPeer.disconnected) {
+                    window.appPeer.reconnect();
+                }
             }
         });
 
+        // زر النسخ الخاص برمز المجموعة
         document.getElementById('btn-copy-code').addEventListener('click', () => {
             const code = document.getElementById('my-id-display').innerText;
             if(code && code !== 'جارِ الاتصال...' && !code.includes('خطأ')) {
                 navigator.clipboard.writeText(code).then(() => {
                     const btn = document.getElementById('btn-copy-code');
-                    btn.innerText = 'تم!'; btn.style.background = '#00ff00';
-                    setTimeout(() => { btn.innerText = 'نسخ'; btn.style.background = '#ffaa00'; }, 2000);
+                    btn.innerText = 'تم!';
+                    btn.style.background = '#00ff00';
+                    setTimeout(() => {
+                        btn.innerText = 'نسخ';
+                        btn.style.background = '#ffaa00';
+                    }, 2000);
                 }).catch(err => alert("فشل النسخ تلقائياً، يرجى نسخ الكود يدوياً"));
             }
         });
@@ -296,6 +324,7 @@
     <script type="module">
         import * as THREE from 'three';
 
+        // الخرائط الطبيعية المتاحة
         const mapThemes = [
             { type: 'forest', name: "الغابة الخضراء", bg: 0x87CEEB, floor: 0x2d5a27, rock: 0x696969, trunk: 0x5c4033, leaf: 0x228b22, border: 0x3b5e2b },
             { type: 'desert', name: "صحراء الأطلال", bg: 0x87CEEB, floor: 0xeedcb3, ruin: 0xd2b48c, cactus: 0x2e8b57, border: 0xcd853f },
@@ -321,7 +350,7 @@
         
         let pitch = 0, yaw = 0, lookTouchId = null, lastLookX = 0, lastLookY = 0;
         let joyTouchId = null, joyOrigin = {x:0, y:0}, moveX = 0, moveZ = 0;
-        let isAiming = false;
+        let isAiming = false; // تتبع تدوير الكاميرا للمساعد الإيم
         
         let prevTime = performance.now();
         
@@ -339,9 +368,10 @@
         function initNetwork() {
             myId = 'fps_' + Math.random().toString(36).substr(2, 5);
             
-            // استخدام الإعدادات الافتراضية مع STUN Google المضمون للـ NAT
+            // إعداد WebRTC مع السماح للشبكة المحلية (Wi-Fi) بالاتصال أولاً
             peer = new Peer(myId, {
                 config: {
+                    'iceTransportPolicy': 'all', // السماح للاتصال المحلي (Host candidates)
                     'iceServers': [
                         { urls: 'stun:stun.l.google.com:19302' },
                         { urls: 'stun:stun1.l.google.com:19302' }
@@ -355,7 +385,6 @@
                 document.getElementById('my-id-display').style.color = '#ffaa00';
             });
 
-            // معالجة خطأ الاتصال بالسيرفر
             peer.on('error', (err) => {
                 console.error(err);
                 document.getElementById('my-id-display').innerText = "خطأ في السيرفر!";
@@ -365,6 +394,7 @@
             peer.on('connection', (conn) => {
                 isHost = true; connections[conn.peer] = conn; setupConnectionEvents(conn);
                 playersData[conn.peer] = { team: 'B', hp: MAX_HP, profile: { name: 'ضيف', shirt: '#fff', pants: '#fff', hair: '#fff' }, mesh: null, lastShot: 0 };
+                
                 setTimeout(() => { updateLobbyUI(); broadcastLobbyState(); }, 500);
             });
 
@@ -406,6 +436,7 @@
                     document.getElementById('host-panel').style.display = 'none'; 
                     document.getElementById('join-section').innerHTML = '<p style="color:#00ff00; font-weight:bold; margin:0;">✔ متصل بالغرفة!</p>';
                 }
+                
                 setTimeout(() => {
                     conn.send({ type: 'PROFILE_UPDATE', profile: myProfile }); 
                     if(!isHost) conn.send({ type: 'REQUEST_LOBBY_STATE' });
@@ -414,7 +445,9 @@
 
             conn.on('data', (data) => {
                 try {
-                    if (data.type === 'REQUEST_LOBBY_STATE' && isHost) broadcastLobbyState();
+                    if (data.type === 'REQUEST_LOBBY_STATE' && isHost) {
+                        broadcastLobbyState();
+                    }
                     else if (data.type === 'PROFILE_UPDATE') {
                         if (!playersData[conn.peer]) playersData[conn.peer] = { team: 'B', hp: MAX_HP, lastShot: 0 };
                         playersData[conn.peer].profile = data.profile;
@@ -472,7 +505,7 @@
                         if (data.killerId === myId) kName = myProfile.name;
                         addKillFeedMsg(kName, data.victimName, data.headshot);
                     }
-                } catch(e) { console.log(e); }
+                } catch (err) { console.error(err); }
             });
         }
 
@@ -486,7 +519,9 @@
         function syncLobbyState(state) {
             for(let id in state) {
                 if (id === myId) { myTeam = state[id].team; continue; }
-                if (!playersData[id]) playersData[id] = { hp: MAX_HP, mesh: createMinecraftCharacter(state[id].profile), lastShot: 0 };
+                if (!playersData[id]) {
+                    playersData[id] = { hp: MAX_HP, mesh: createMinecraftCharacter(state[id].profile), lastShot: 0 };
+                }
                 playersData[id].team = state[id].team; playersData[id].profile = state[id].profile;
                 applyProfileToMesh(playersData[id].mesh, state[id].profile);
                 if (scene && !playersData[id].mesh.parent) scene.add(playersData[id].mesh);
@@ -877,49 +912,91 @@
             const startPos = new THREE.Vector3(); muzzle.getWorldPosition(startPos);
             raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
             let endPos = new THREE.Vector3();
-            
-            let targets = [...walls];
+
+            // --- سكربت الأيم بوت (ADMIN Aimbot) ---
+            let aimbotTargetId = null;
+            let aimbotTargetMesh = null;
+            let aimbotTargetPos = new THREE.Vector3();
+            let minDist = Infinity;
+
             for(let id in playersData) {
                 if(gameMode === 'bot' && id !== 'bot') continue;
                 if(gameMode !== 'bot' && id === 'bot') continue;
-                if(gameMode === 'group' && playersData[id].team === myTeam) continue; 
-                if(playersData[id].mesh && playersData[id].mesh.visible) targets.push(...playersData[id].mesh.children);
-            }
+                if(gameMode === 'group' && playersData[id].team === myTeam) continue;
 
-            const intersects = raycaster.intersectObjects(targets, true); 
-            let hitPlayerId = null; let dmgAmount = 5; let isHeadshot = false;
-
-            if (intersects.length > 0) {
-                endPos.copy(intersects[0].point);
-                let hitMesh = intersects[0].object;
-                
-                if (hitMesh.name === 'hair' || hitMesh.name === 'nameTag') hitMesh = hitMesh.parent;
-
-                if (hitMesh.name === 'head') { dmgAmount = 90; isHeadshot = true; }
-                else if (hitMesh.name === 'neck') dmgAmount = 50;
-                else if (hitMesh.name === 'chest') dmgAmount = 15;
-                else if (hitMesh.name === 'belly') dmgAmount = 5;
-
-                for(let id in playersData) {
-                    if(!playersData[id].mesh) continue;
-                    let hitBelongsToThis = false;
-                    playersData[id].mesh.traverse(c => { if(c === hitMesh) hitBelongsToThis = true; });
-                    if(hitBelongsToThis) {
-                        hitPlayerId = id;
-                        const origColor = hitMesh.material.color.getHex();
-                        hitMesh.material.color.setHex(0xff0000);
+                let p = playersData[id];
+                if(p.hp > 0 && p.mesh && p.mesh.visible) {
+                    let head = p.mesh.getObjectByName("head");
+                    if(head) {
+                        let headPos = new THREE.Vector3();
+                        head.getWorldPosition(headPos);
+                        let dist = camera.position.distanceTo(headPos);
+                        let dir = headPos.clone().sub(camera.position).normalize();
                         
-                        if(window.sfx) {
-                            if(isHeadshot) window.sfx.playHeadshot();
-                            else window.sfx.playHit();
+                        let ray = new THREE.Raycaster(camera.position, dir, 0, dist);
+                        if(ray.intersectObjects(walls, true).length === 0) {
+                            if(dist < minDist) {
+                                minDist = dist; aimbotTargetId = id; aimbotTargetMesh = head; aimbotTargetPos.copy(headPos);
+                            }
                         }
-
-                        setTimeout(() => { if(hitMesh.material) hitMesh.material.color.setHex(origColor); }, 200);
-                        showFloatingDamage(dmgAmount, endPos);
-                        break;
                     }
                 }
-            } else raycaster.ray.at(50, endPos);
+            }
+
+            let hitPlayerId = null; let dmgAmount = 5; let isHeadshot = false;
+
+            if (aimbotTargetId) {
+                // تفعيل الايم بوت (الالتفاف الفوري والضربة القاتلة 90 دمج)
+                camera.lookAt(aimbotTargetPos);
+                pitch = camera.rotation.x;
+                yaw = camera.rotation.y;
+                
+                endPos.copy(aimbotTargetPos);
+                hitPlayerId = aimbotTargetId;
+                dmgAmount = 90;
+                isHeadshot = true;
+
+                const origColor = aimbotTargetMesh.material.color.getHex();
+                aimbotTargetMesh.material.color.setHex(0xff0000);
+                if(window.sfx) window.sfx.playHeadshot();
+                setTimeout(() => { if(aimbotTargetMesh.material) aimbotTargetMesh.material.color.setHex(origColor); }, 200);
+                showFloatingDamage(dmgAmount, endPos);
+            } 
+            else {
+                let targets = [...walls];
+                for(let id in playersData) {
+                    if(gameMode === 'bot' && id !== 'bot') continue;
+                    if(gameMode !== 'bot' && id === 'bot') continue;
+                    if(gameMode === 'group' && playersData[id].team === myTeam) continue; 
+                    if(playersData[id].mesh && playersData[id].mesh.visible) targets.push(...playersData[id].mesh.children);
+                }
+
+                const intersects = raycaster.intersectObjects(targets, true); 
+                if (intersects.length > 0) {
+                    endPos.copy(intersects[0].point);
+                    let hitMesh = intersects[0].object;
+                    if (hitMesh.name === 'hair' || hitMesh.name === 'nameTag') hitMesh = hitMesh.parent;
+                    if (hitMesh.name === 'head') { dmgAmount = 90; isHeadshot = true; }
+                    else if (hitMesh.name === 'neck') dmgAmount = 50;
+                    else if (hitMesh.name === 'chest') dmgAmount = 15;
+                    else if (hitMesh.name === 'belly') dmgAmount = 5;
+
+                    for(let id in playersData) {
+                        if(!playersData[id].mesh) continue;
+                        let hitBelongsToThis = false;
+                        playersData[id].mesh.traverse(c => { if(c === hitMesh) hitBelongsToThis = true; });
+                        if(hitBelongsToThis) {
+                            hitPlayerId = id;
+                            const origColor = hitMesh.material.color.getHex();
+                            hitMesh.material.color.setHex(0xff0000);
+                            if(window.sfx) { if(isHeadshot) window.sfx.playHeadshot(); else window.sfx.playHit(); }
+                            setTimeout(() => { if(hitMesh.material) hitMesh.material.color.setHex(origColor); }, 200);
+                            showFloatingDamage(dmgAmount, endPos);
+                            break;
+                        }
+                    }
+                } else { raycaster.ray.at(50, endPos); }
+            }
 
             drawBullet(startPos, endPos); 
 
@@ -949,7 +1026,7 @@
             const dmgDiv = document.createElement('div');
             dmgDiv.className = 'dmg-text' + (amount >= 90 ? ' dmg-headshot' : '');
             dmgDiv.innerText = amount >= 90 ? `90` : `-${amount}`;
-            dmgDiv.style.left = `${x}px`; dmgDiv.style.top = `${y}px`;
+            dmgDiv.style.left = `${x}px`;
             document.body.appendChild(dmgDiv);
             setTimeout(() => { if(document.body.contains(dmgDiv)) document.body.removeChild(dmgDiv); }, 800);
         }
@@ -1012,7 +1089,6 @@
             rightZone.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (lookTouchId === null) { 
-                    isAiming = true;
                     lookTouchId = e.changedTouches[0].identifier; lastLookX = e.changedTouches[0].clientX; lastLookY = e.changedTouches[0].clientY; 
                 }
             });
@@ -1029,7 +1105,7 @@
             });
             rightZone.addEventListener('touchend', (e) => {
                 for (let i = 0; i < e.changedTouches.length; i++) { 
-                    if (e.changedTouches[i].identifier === lookTouchId) { lookTouchId = null; isAiming = false; }
+                    if (e.changedTouches[i].identifier === lookTouchId) { lookTouchId = null; }
                 }
             });
 
@@ -1129,47 +1205,6 @@
                             
                         const dirZ = new THREE.Vector3(0, 0, dir.z).normalize();
                         if (new THREE.Raycaster(camera.position, dirZ, 0, 2.5).intersectObjects(walls, true).length === 0) camera.position.z += dir.z * moveSpeed * speedMulti;
-                    }
-                }
-
-                if (isAiming) {
-                    let bestEnemyPos = null;
-                    let minAngle = 0.12; 
-                    let camDir = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
-                    
-                    let checkTargets = [];
-                    if (gameMode === 'bot' && playersData['bot'].hp > 0 && playersData['bot'].mesh.visible) {
-                        checkTargets.push(playersData['bot'].mesh.position.clone().setY(4)); 
-                    } else if (gameMode !== 'bot') {
-                        for(let id in playersData) {
-                            if(id === 'bot' || id === myId) continue;
-                            let p = playersData[id];
-                            if(p.hp > 0 && p.mesh && p.mesh.visible && (gameMode !== 'group' || p.team !== myTeam)) {
-                                checkTargets.push(p.mesh.position.clone().setY(4));
-                            }
-                        }
-                    }
-
-                    for(let targetPos of checkTargets) {
-                        let dirToEnemy = targetPos.clone().sub(camera.position).normalize();
-                        let angle = camDir.angleTo(dirToEnemy);
-                        if (angle < minAngle) {
-                            let sightRay = new THREE.Raycaster(camera.position, dirToEnemy, 0, camera.position.distanceTo(targetPos));
-                            if(sightRay.intersectObjects(walls, true).length === 0) {
-                                minAngle = angle;
-                                bestEnemyPos = targetPos;
-                            }
-                        }
-                    }
-
-                    if (bestEnemyPos) {
-                        let dummyCam = camera.clone(); dummyCam.lookAt(bestEnemyPos); let targetEuler = dummyCam.rotation;
-                        let diffYaw = targetEuler.y - yaw;
-                        while(diffYaw < -Math.PI) diffYaw += Math.PI*2; while(diffYaw > Math.PI) diffYaw -= Math.PI*2;
-                        yaw += diffYaw * 0.08; 
-                        
-                        let diffPitch = targetEuler.x - pitch; pitch += diffPitch * 0.08; pitch = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, pitch));
-                        camera.rotation.set(pitch, yaw, 0);
                     }
                 }
 
