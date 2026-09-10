@@ -3,60 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-title" content="Pro FPS Admin">
+    <meta name="apple-mobile-web-app-title" content="Pro FPS">
+    <meta name="application-name" content="Pro FPS">
     
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111' rx='20'/%3E%3Ccircle cx='50' cy='50' r='35' stroke='%23ff0000' stroke-width='5' fill='none'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ff0000'/%3E%3Cline x1='50' y1='5' x2='50' y2='25' stroke='%23ff0000' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='50' y1='95' x2='50' y2='75' stroke='%23ff0000' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='5' y1='50' x2='25' y2='50' stroke='%23ff0000' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='95' y1='50' x2='75' y2='50' stroke='%23ff0000' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111' rx='20'/%3E%3Ccircle cx='50' cy='50' r='35' stroke='%23ffaa00' stroke-width='5' fill='none'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ff0000'/%3E%3Cline x1='50' y1='5' x2='50' y2='25' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='50' y1='95' x2='50' y2='75' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='5' y1='50' x2='25' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='95' y1='50' x2='75' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
 
-    <title>Pro FPS - ADMIN (Wi-Fi Ready)</title>
+    <title>Pro FPS - Local WiFi Ready</title>
     <style>
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; -webkit-user-select: none;}
         
         canvas { display: block; width: 100vw; height: 100vh; }
 
-        #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #050000; z-index: 100000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .btn-start-fs { background: #ff0000; border: none; padding: 2vh 4vw; font-size: max(20px, 3vh); font-weight: bold; border-radius: 10px; cursor: pointer; color: #fff; box-shadow: 0 0 20px rgba(255, 0, 0, 0.8); transition: 0.2s; }
-        .btn-start-fs:active { transform: scale(0.95); background: #cc0000; }
+        #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 100000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .btn-start-fs { background: #ffaa00; border: none; padding: 2vh 4vw; font-size: max(20px, 3vh); font-weight: bold; border-radius: 10px; cursor: pointer; color: #000; box-shadow: 0 0 20px rgba(255, 170, 0, 0.5); transition: 0.2s; }
+        .btn-start-fs:active { transform: scale(0.95); background: #cc8800; }
 
         #resume-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100001; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center;}
 
-        #orientation-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: 24px; color: #ff0000; display: none;}
+        #orientation-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: 24px; color: #ffcc00; display: none;}
         @media screen and (orientation: portrait) { #orientation-lock { display: flex !important; } }
 
         #lobby-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; display: none;} 
-        .panel { background: rgba(0,0,0,0.8); padding: 2vh; border-radius: 10px; border: 1px solid #ff0000; pointer-events: auto; backdrop-filter: blur(5px); max-height: 90vh; overflow-y: auto; box-shadow: 0 0 15px rgba(255,0,0,0.3);}
+        .panel { background: rgba(0,0,0,0.6); padding: 2vh; border-radius: 10px; border: 1px solid #00aaff; pointer-events: auto; backdrop-filter: blur(5px); max-height: 90vh; overflow-y: auto; }
         
         .left-panel { position: absolute; left: 2vw; top: 5vh; width: 35vw; max-width: 280px; display: flex; flex-direction: column; gap: 1vh;}
-        .left-panel input[type="text"] { width: 100%; padding: 1vh; background: #222; color: #fff; border: 1px solid #ff0000; text-align: center; font-weight: bold; border-radius: 5px;}
+        .left-panel input[type="text"] { width: 100%; padding: 1vh; background: #222; color: #fff; border: 1px solid #00aaff; text-align: center; font-weight: bold; border-radius: 5px;}
         .color-picker { display: flex; justify-content: space-between; align-items: center; font-size: min(14px, 2.5vh); }
         .color-picker input[type="color"] { cursor: pointer; border: none; width: 30px; height: 30px; background: none; }
         
         .join-box { display: flex; flex-direction: column; gap: 5px; margin-top: 1vh; border-top: 1px solid #555; padding-top: 1vh;}
-        .btn { background: rgba(255, 0, 0, 0.7); border: 2px solid #ff0000; color: white; padding: 1vh; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.2s; font-size: min(14px, 2.5vh);}
-        .btn:active { background: #ff0000; transform: scale(0.95);}
+        .btn { background: rgba(0, 100, 255, 0.7); border: 2px solid #00aaff; color: white; padding: 1vh; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.2s; font-size: min(14px, 2.5vh);}
+        .btn:active { background: #00aaff; transform: scale(0.95);}
 
         .host-controls { position: absolute; right: 2vw; top: 5vh; width: 35vw; max-width: 280px; }
-        .mode-select { width: 100%; padding: 1vh; margin-bottom: 1vh; background: #333; color: white; border-radius: 5px; border: 1px solid #ff0000; }
+        .mode-select { width: 100%; padding: 1vh; margin-bottom: 1vh; background: #333; color: white; border-radius: 5px; }
         .player-list { max-height: 15vh; overflow-y: auto; margin-bottom: 1vh; font-size: min(14px, 2.5vh); }
         .player-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; padding: 5px; background: rgba(0,0,0,0.5); border-radius: 4px;}
         .team-btn { font-size: 10px; padding: 3px 6px; }
         .team-a { background: #0044aa; border-color: #0066ff;} .team-b { background: #aa0000; border-color: #ff3333;}
-        #btn-start { width: 100%; background: #ff0000; color: #fff; border: none; font-size: min(18px, 3vh); padding: 1.5vh; font-weight: bold; border-radius: 5px; box-shadow: 0 0 10px #ff0000;}
+        #btn-start { width: 100%; background: #ffaa00; color: #000; border: none; font-size: min(18px, 3vh); padding: 1.5vh; font-weight: bold; border-radius: 5px;}
 
         .copy-container { display: flex; justify-content: center; align-items: center; gap: 5px; margin-top: 5px; }
-        .copy-code { font-size: min(16px, 2.8vh); background: #222; padding: 5px 10px; border-radius: 4px; border: 1px solid #ff0000; color: #ff0000; user-select: all; }
-        .btn-copy { background: #ff0000; color: #fff; border: none; padding: 5px 10px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: min(14px, 2.5vh); transition: 0.2s;}
-        .btn-copy:active { background: #cc0000; transform: scale(0.9); }
-
-        #admin-badge { position: absolute; top: 2vh; right: 2vw; background: rgba(255,0,0,0.8); padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: min(14px, 2.5vh); border: 2px solid #fff; z-index: 1000; pointer-events: none;}
+        .copy-code { font-size: min(16px, 2.8vh); background: #222; padding: 5px 10px; border-radius: 4px; border: 1px solid #ffaa00; color: #ffaa00; user-select: all; }
+        .btn-copy { background: #ffaa00; color: #000; border: none; padding: 5px 10px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: min(14px, 2.5vh); transition: 0.2s;}
+        .btn-copy:active { background: #cc8800; transform: scale(0.9); }
 
         #game-ui { display: none; }
-        #crosshair { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; border: 2px solid rgba(255,0,0,0.8); border-radius: 50%; transform: translate(-50%, -50%); z-index: 10; pointer-events: none;}
-        #crosshair::after { content: ''; position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: #ff0000; border-radius: 50%; transform: translate(-50%, -50%); }
+        #crosshair { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); z-index: 10; pointer-events: none;}
+        #crosshair::after { content: ''; position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: #ffffff; border-radius: 50%; transform: translate(-50%, -50%); }
         
         #top-status { position: absolute; top: 2vh; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); padding: 1vh 2vw; border: 2px solid #fff; border-radius: 10px; color: white; font-size: min(16px, 3vh); font-weight: bold; text-shadow: 0 0 5px #000; z-index: 10; pointer-events: none; display: flex; gap: 2vw; }
         .score-a { color: #00aaff; } .score-b { color: #ff4444; }
@@ -74,24 +74,24 @@
         #left-touch-zone { position: absolute; top: 0; left: 0; width: 50%; height: 100%; z-index: 1; pointer-events: auto; }
         #right-touch-zone { position: absolute; top: 0; right: 0; width: 50%; height: 100%; z-index: 1; pointer-events: auto; }
 
-        #joystick-pad { position: absolute; width: min(120px, 20vw); height: min(120px, 20vw); border-radius: 50%; background: rgba(255,0,0,0.2); border: 2px solid rgba(255,0,0,0.5); display: none; transform: translate(-50%, -50%); z-index: 5; pointer-events: none;}
-        #joystick-knob { position: absolute; width: min(40px, 7vw); height: min(40px, 7vw); border-radius: 50%; background: rgba(255,0,0,0.8); top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px #ff0000;}
+        #joystick-pad { position: absolute; width: min(120px, 20vw); height: min(120px, 20vw); border-radius: 50%; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); display: none; transform: translate(-50%, -50%); z-index: 5; pointer-events: none;}
+        #joystick-knob { position: absolute; width: min(40px, 7vw); height: min(40px, 7vw); border-radius: 50%; background: rgba(255,255,255,0.7); top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px #fff;}
 
-        #minimap { position: absolute; top: 2vh; left: 2vw; width: min(120px, 15vw); height: min(120px, 15vw); background: rgba(0, 0, 0, 0.6); border: 2px solid #ff0000; border-radius: 10px; z-index: 10; pointer-events: none; }
+        #minimap { position: absolute; top: 2vh; left: 2vw; width: min(120px, 15vw); height: min(120px, 15vw); background: rgba(0, 0, 0, 0.6); border: 2px solid #00aaff; border-radius: 10px; z-index: 10; pointer-events: none; }
 
-        #weapon-ui { position: absolute; bottom: 18vh; right: 2vw; background: rgba(0,0,0,0.7); border: 2px solid #ff0000; padding: 1vh; border-radius: 10px; color: white; text-align: center; font-weight: bold; z-index: 15; pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; width: max(60px, 8vw);}
-        #weapon-ui:active { background: rgba(255, 0, 0, 0.4); }
+        #weapon-ui { position: absolute; bottom: 18vh; right: 2vw; background: rgba(0,0,0,0.7); border: 2px solid #ffaa00; padding: 1vh; border-radius: 10px; color: white; text-align: center; font-weight: bold; z-index: 15; pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; width: max(60px, 8vw);}
+        #weapon-ui:active { background: rgba(255, 170, 0, 0.4); }
         .gun-icon { font-size: min(24px, 4vh); margin-bottom: 2px;}
 
         .btn-game { position: absolute; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255,255,255,0.3); color: white; font-weight: bold; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 50%; pointer-events: auto; font-size: min(16px, 3vh); z-index: 15; user-select: none;}
         .btn-game:active { background: rgba(255, 255, 255, 0.4); }
         
-        #btn-shoot { bottom: 5vh; right: 5vw; width: min(80px, 15vw); height: min(80px, 15vw); background: rgba(255, 0, 0, 0.3); border-color: #ff0000; font-size: min(20px, 4vh); box-shadow: 0 0 15px rgba(255,0,0,0.5);}
+        #btn-shoot { bottom: 5vh; right: 5vw; width: min(80px, 15vw); height: min(80px, 15vw); background: rgba(255, 170, 0, 0.2); border-color: #ffaa00; font-size: min(20px, 4vh);}
         #btn-gloo { bottom: 5vh; right: calc(5vw + min(90px, 17vw)); width: min(60px, 11vw); height: min(60px, 11vw); background: rgba(0, 255, 255, 0.2); border-color: #00ffff; }
         #btn-heal { bottom: 5vh; right: calc(5vw + min(160px, 30vw)); width: min(60px, 11vw); height: min(60px, 11vw); background: rgba(0, 255, 0, 0.2); border-color: #00ff00; }
         
         .dmg-text { position: absolute; color: #ffaa00; font-weight: bold; font-size: min(22px, 4vh); text-shadow: 2px 2px 0 #000; pointer-events: none; animation: floatUp 0.8s forwards; z-index: 50; }
-        .dmg-headshot { color: #ff0000; font-size: min(32px, 6vh); text-shadow: 0 0 10px #ff0000;}
+        .dmg-headshot { color: #ff0000; font-size: min(28px, 5vh); }
         @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-50px) scale(1.5); opacity: 0; } }
 
         #kill-feed { position: absolute; bottom: 12vh; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 5px; pointer-events: none; z-index: 50; }
@@ -106,36 +106,34 @@
 <body>
 
     <div id="start-screen">
-        <h1 style="color: #ff0000; text-shadow: 0 0 15px #ff0000; margin-bottom: 5px;">PRO FPS - ADMIN</h1>
-        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">تفعيل الأيم بوت (Aimbot)</p>
-        <button class="btn-start-fs" id="btn-fs">تفعيل الدخول</button>
+        <h1 style="color: #00aaff; text-shadow: 0 0 15px #00aaff; margin-bottom: 5px;">PRO FPS</h1>
+        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">التطبيق المتكامل</p>
+        <button class="btn-start-fs" id="btn-fs">دخول اللعبة</button>
     </div>
 
+    <!-- شاشة الاستئناف بعد العودة من الانستغرام/الماسنجر -->
     <div id="resume-screen">
-        <h2 style="color: #ff0000; margin-bottom: 20px;">تم الإيقاف (Admin)</h2>
-        <button class="btn-start-fs" id="btn-resume">استئناف</button>
+        <h2 style="color: #ffaa00; margin-bottom: 20px;">تم إيقاف اللعبة مؤقتاً</h2>
+        <button class="btn-start-fs" id="btn-resume">استئناف اللعب</button>
     </div>
 
-    <div id="orientation-lock">⚠️<br>دَوِّر الهاتف للعب!</div>
-
-    <!-- شارة الأدمن -->
-    <div id="admin-badge">🎯 ADMIN AIMBOT ACTIVE</div>
+    <div id="orientation-lock">⚠️<br>يرجى تدوير الهاتف بالعرض للعب!</div>
 
     <div id="lobby-ui">
         <div class="panel left-panel">
-            <h3 style="margin: 0; color: #ff0000; text-align: center; font-size: min(18px, 3vh);">الأدمن</h3>
-            <input type="text" id="my-name" value="Admin" placeholder="اسمك">
-            <div class="color-picker">القميص: <input type="color" id="c-shirt" value="#ff0000"></div>
-            <div class="color-picker">السروال: <input type="color" id="c-pants" value="#111111"></div>
-            <div class="color-picker">الشعر: <input type="color" id="c-hair" value="#ffffff"></div>
+            <h3 style="margin: 0; color: #00aaff; text-align: center; font-size: min(18px, 3vh);">شخصيتي</h3>
+            <input type="text" id="my-name" value="مقاتل" placeholder="اسمك">
+            <div class="color-picker">القميص: <input type="color" id="c-shirt" value="#0055ff"></div>
+            <div class="color-picker">السروال: <input type="color" id="c-pants" value="#222222"></div>
+            <div class="color-picker">الشعر: <input type="color" id="c-hair" value="#ffaa00"></div>
             
             <div class="join-box" id="join-section">
-                <small style="color:#aaa; font-size: min(12px, 2vh);">للانضمام لغرفة (تخفي):</small>
+                <small style="color:#aaa; font-size: min(12px, 2vh);">للانضمام لغرفة صديق:</small>
                 <input type="text" id="friend-id" placeholder="كود الغرفة">
                 <button class="btn" id="btn-join">انضمام ➔</button>
             </div>
             
-            <div style="font-size: min(12px, 2vh); color: #ff0000; text-align: center; margin-top: 1vh;">
+            <div style="font-size: min(12px, 2vh); color: #ffaa00; text-align: center; margin-top: 1vh;">
                 كود مجموعتك:
                 <div class="copy-container">
                     <span id="my-id-display" class="copy-code">جارِ الاتصال...</span>
@@ -145,18 +143,57 @@
         </div>
 
         <div class="panel host-controls" id="host-panel">
-            <h3 style="margin-top:0; color:#ff0000; text-align: center; font-size: min(18px, 3vh);">المباراة</h3>
+            <h3 style="margin-top:0; color:#ffaa00; text-align: center; font-size: min(18px, 3vh);">المباراة</h3>
             <select class="mode-select" id="mode-select">
                 <option value="bot">تدريب ضد الروبوت</option>
                 <option value="1v1">1 ضد 1</option>
                 <option value="group">مجموعة (فرق)</option>
             </select>
             <div class="player-list" id="player-list"></div>
-            <button id="btn-start">بدء الإبادة 🔥</button>
+            <button id="btn-start">بدء المعركة 🔥</button>
         </div>
     </div>
 
+    <div id="game-ui">
+        <div id="msg-overlay"></div>
+        <div id="left-touch-zone"></div>
+        <div id="right-touch-zone"></div>
+        
+        <div id="joystick-pad"><div id="joystick-knob"></div></div>
+        <canvas id="minimap" width="120" height="120"></canvas>
+
+        <div id="top-status">
+            الجولة: <span id="round-num">1</span> | 
+            <span class="score-a">A: <span id="score-a-val">0</span></span> - 
+            <span class="score-b">B: <span id="score-b-val">0</span></span>
+        </div>
+        
+        <div id="hp-container">
+            <div id="hp-fill"></div>
+            <div id="hp-text">200 / 200</div>
+        </div>
+        
+        <div id="heal-progress-container">
+            <div id="heal-progress-fill"></div>
+            <div id="heal-progress-text">جاري العلاج...</div>
+        </div>
+
+        <div id="crosshair"></div>
+        
+        <div id="weapon-ui">
+            <div class="gun-icon">🔫</div>
+            <div id="weapon-ammo">30/30</div>
+        </div>
+
+        <div id="btn-heal" class="btn-game">💉<br><small>علاج</small></div>
+        <div id="btn-gloo" class="btn-game">🧊<br><small>ثلجة</small></div>
+        <div id="btn-shoot" class="btn-game">🔥<br>نار</div>
+        
+        <div id="kill-feed"></div>
+    </div>
+
     <script>
+        // إعدادات الصوت الاصطناعية (Web Audio API)
         window.sfx = {};
         window.initAudio = function() {
             if(window.audioCtx) return;
@@ -165,13 +202,17 @@
 
             window.sfx.playShoot = () => {
                 if(ctx.state === 'suspended') ctx.resume();
-                const bufferSize = ctx.sampleRate * 0.1; const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-                const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                const bufferSize = ctx.sampleRate * 0.1;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
                 const noise = ctx.createBufferSource(); noise.buffer = buffer;
                 const noiseFilter = ctx.createBiquadFilter(); noiseFilter.type = 'lowpass'; noiseFilter.frequency.value = 1000;
                 const gain = ctx.createGain(); gain.gain.setValueAtTime(0.5, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-                noise.connect(noiseFilter); noiseFilter.connect(gain); gain.connect(ctx.destination); noise.start();
+                noise.connect(noiseFilter); noiseFilter.connect(gain); gain.connect(ctx.destination);
+                noise.start();
             };
+
             window.sfx.playHeadshot = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const osc = ctx.createOscillator(); const gain = ctx.createGain();
@@ -179,6 +220,7 @@
                 gain.gain.setValueAtTime(1, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
                 osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.3);
             };
+
             window.sfx.playHit = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const osc = ctx.createOscillator(); const gain = ctx.createGain();
@@ -186,6 +228,7 @@
                 gain.gain.setValueAtTime(0.5, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
                 osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
             };
+
             window.sfx.playDamage = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const osc = ctx.createOscillator(); const gain = ctx.createGain();
@@ -193,6 +236,7 @@
                 gain.gain.setValueAtTime(0.8, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
                 osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.3);
             };
+
             window.sfx.playReload = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const playClick = (timeOffset) => {
@@ -203,6 +247,7 @@
                 };
                 playClick(0); playClick(0.4); playClick(1.2);
             };
+
             window.sfx.playGloo = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const osc = ctx.createOscillator(); const gain = ctx.createGain();
@@ -210,6 +255,7 @@
                 gain.gain.setValueAtTime(0.5, ctx.currentTime); gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
                 osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.4);
             };
+
             window.sfx.playHeal = () => {
                 if(ctx.state === 'suspended') ctx.resume();
                 const notes = [440, 554.37, 659.25, 880];
@@ -222,11 +268,15 @@
             };
         };
 
+        // زر الدخول وإجبار وضع الشاشة الكاملة والعرض
         const goFullscreen = () => {
             const docElm = document.documentElement;
             if (docElm.requestFullscreen) docElm.requestFullscreen().catch(e=>console.log(e));
             else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
-            if (screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(e => console.log(e)); }
+            
+            if (screen.orientation && screen.orientation.lock) { 
+                screen.orientation.lock('landscape').catch(e => console.log('Orientation lock failed:', e)); 
+            }
         };
 
         document.getElementById('btn-fs').addEventListener('click', () => {
@@ -242,22 +292,30 @@
             document.getElementById('resume-screen').style.display = 'none';
         });
 
+        // نظام الحفاظ على الجلسة (Session Persistence) عند العودة من تطبيق آخر
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "visible") {
                 if (document.getElementById('start-screen').style.display === 'none' && !document.fullscreenElement) {
                     document.getElementById('resume-screen').style.display = 'flex';
                 }
-                if (window.appPeer && window.appPeer.disconnected) window.appPeer.reconnect();
+                if (window.appPeer && window.appPeer.disconnected) {
+                    window.appPeer.reconnect();
+                }
             }
         });
 
+        // زر النسخ الخاص برمز المجموعة
         document.getElementById('btn-copy-code').addEventListener('click', () => {
             const code = document.getElementById('my-id-display').innerText;
             if(code && code !== 'جارِ الاتصال...' && !code.includes('خطأ')) {
                 navigator.clipboard.writeText(code).then(() => {
                     const btn = document.getElementById('btn-copy-code');
-                    btn.innerText = 'تم!'; btn.style.background = '#00ff00';
-                    setTimeout(() => { btn.innerText = 'نسخ'; btn.style.background = '#ff0000'; }, 2000);
+                    btn.innerText = 'تم!';
+                    btn.style.background = '#00ff00';
+                    setTimeout(() => {
+                        btn.innerText = 'نسخ';
+                        btn.style.background = '#ffaa00';
+                    }, 2000);
                 }).catch(err => alert("فشل النسخ تلقائياً، يرجى نسخ الكود يدوياً"));
             }
         });
@@ -266,6 +324,7 @@
     <script type="module">
         import * as THREE from 'three';
 
+        // الخرائط الطبيعية المتاحة
         const mapThemes = [
             { type: 'forest', name: "الغابة الخضراء", bg: 0x87CEEB, floor: 0x2d5a27, rock: 0x696969, trunk: 0x5c4033, leaf: 0x228b22, border: 0x3b5e2b },
             { type: 'desert', name: "صحراء الأطلال", bg: 0x87CEEB, floor: 0xeedcb3, ruin: 0xd2b48c, cactus: 0x2e8b57, border: 0xcd853f },
@@ -281,7 +340,7 @@
 
         let peer, myId, isHost = true;
         let connections = {}; 
-        let myProfile = { name: 'Admin', shirt: '#ff0000', pants: '#111111', hair: '#ffffff' };
+        let myProfile = { name: 'مقاتل', shirt: '#0055ff', pants: '#222222', hair: '#ffaa00' };
         let playersData = {}; 
         let myTeam = 'A', gameMode = 'bot';
 
@@ -291,6 +350,7 @@
         
         let pitch = 0, yaw = 0, lookTouchId = null, lastLookX = 0, lastLookY = 0;
         let joyTouchId = null, joyOrigin = {x:0, y:0}, moveX = 0, moveZ = 0;
+        let isAiming = false; // تتبع تدوير الكاميرا للمساعد الإيم
         
         let prevTime = performance.now();
         
@@ -311,7 +371,7 @@
             // إعداد WebRTC مع السماح للشبكة المحلية (Wi-Fi) بالاتصال أولاً
             peer = new Peer(myId, {
                 config: {
-                    'iceTransportPolicy': 'all',
+                    'iceTransportPolicy': 'all', // السماح للاتصال المحلي (Host candidates)
                     'iceServers': [
                         { urls: 'stun:stun.l.google.com:19302' },
                         { urls: 'stun:stun1.l.google.com:19302' }
@@ -322,17 +382,19 @@
 
             peer.on('open', (id) => { 
                 document.getElementById('my-id-display').innerText = id; 
-                document.getElementById('my-id-display').style.color = '#ff0000';
+                document.getElementById('my-id-display').style.color = '#ffaa00';
             });
 
             peer.on('error', (err) => {
                 console.error(err);
                 document.getElementById('my-id-display').innerText = "خطأ في السيرفر!";
+                document.getElementById('my-id-display').style.color = "#ff0000";
             });
 
             peer.on('connection', (conn) => {
                 isHost = true; connections[conn.peer] = conn; setupConnectionEvents(conn);
                 playersData[conn.peer] = { team: 'B', hp: MAX_HP, profile: { name: 'ضيف', shirt: '#fff', pants: '#fff', hair: '#fff' }, mesh: null, lastShot: 0 };
+                
                 setTimeout(() => { updateLobbyUI(); broadcastLobbyState(); }, 500);
             });
 
@@ -352,7 +414,7 @@
             });
 
             const updateMyProfile = () => {
-                myProfile.name = document.getElementById('my-name').value || 'Admin';
+                myProfile.name = document.getElementById('my-name').value || 'مقاتل';
                 myProfile.shirt = document.getElementById('c-shirt').value;
                 myProfile.pants = document.getElementById('c-pants').value;
                 myProfile.hair = document.getElementById('c-hair').value;
@@ -372,8 +434,9 @@
             conn.on('open', () => { 
                 if(!isHost) {
                     document.getElementById('host-panel').style.display = 'none'; 
-                    document.getElementById('join-section').innerHTML = '<p style="color:#ff0000; font-weight:bold; margin:0;">✔ متصل (مخفي)!</p>';
+                    document.getElementById('join-section').innerHTML = '<p style="color:#00ff00; font-weight:bold; margin:0;">✔ متصل بالغرفة!</p>';
                 }
+                
                 setTimeout(() => {
                     conn.send({ type: 'PROFILE_UPDATE', profile: myProfile }); 
                     if(!isHost) conn.send({ type: 'REQUEST_LOBBY_STATE' });
@@ -382,7 +445,9 @@
 
             conn.on('data', (data) => {
                 try {
-                    if (data.type === 'REQUEST_LOBBY_STATE' && isHost) broadcastLobbyState();
+                    if (data.type === 'REQUEST_LOBBY_STATE' && isHost) {
+                        broadcastLobbyState();
+                    }
                     else if (data.type === 'PROFILE_UPDATE') {
                         if (!playersData[conn.peer]) playersData[conn.peer] = { team: 'B', hp: MAX_HP, lastShot: 0 };
                         playersData[conn.peer].profile = data.profile;
@@ -440,7 +505,7 @@
                         if (data.killerId === myId) kName = myProfile.name;
                         addKillFeedMsg(kName, data.victimName, data.headshot);
                     }
-                } catch(e) {}
+                } catch (err) { console.error(err); }
             });
         }
 
@@ -454,7 +519,9 @@
         function syncLobbyState(state) {
             for(let id in state) {
                 if (id === myId) { myTeam = state[id].team; continue; }
-                if (!playersData[id]) playersData[id] = { hp: MAX_HP, mesh: createMinecraftCharacter(state[id].profile), lastShot: 0 };
+                if (!playersData[id]) {
+                    playersData[id] = { hp: MAX_HP, mesh: createMinecraftCharacter(state[id].profile), lastShot: 0 };
+                }
                 playersData[id].team = state[id].team; playersData[id].profile = state[id].profile;
                 applyProfileToMesh(playersData[id].mesh, state[id].profile);
                 if (scene && !playersData[id].mesh.parent) scene.add(playersData[id].mesh);
