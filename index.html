@@ -7,11 +7,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-title" content="Pro FPS">
+    <meta name="apple-mobile-web-app-title" content="Pro FPS Firebase">
     
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111' rx='20'/%3E%3Ccircle cx='50' cy='50' r='35' stroke='%23ffaa00' stroke-width='5' fill='none'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ff0000'/%3E%3Cline x1='50' y1='5' x2='50' y2='25' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='50' y1='95' x2='50' y2='75' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='5' y1='50' x2='25' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='95' y1='50' x2='75' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
 
-    <title>Pro FPS - Global Lobby</title>
+    <title>Pro FPS - Advanced Gameplay</title>
     <style>
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; -webkit-user-select: none;}
@@ -24,6 +24,14 @@
 
         #resume-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100001; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center;}
 
+        #invite-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200000; display: none; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto;}
+        .invite-box { background: #111; border: 2px solid #00aaff; padding: 3vh 5vw; border-radius: 10px; text-align: center; box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);}
+        .invite-box h3 { color: #ffaa00; margin-top: 0; font-size: max(18px, 3vh);}
+        .invite-btns { display: flex; gap: 10px; justify-content: center; margin-top: 2vh;}
+        .invite-btns button { padding: 1vh 2vw; font-weight: bold; border-radius: 5px; cursor: pointer; border: none; font-size: max(14px, 2.5vh);}
+        .btn-accept { background: #00ff00; color: #000; } .btn-accept:active { background: #00cc00;}
+        .btn-decline { background: #ff3333; color: #fff; } .btn-decline:active { background: #cc0000;}
+
         #orientation-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: 24px; color: #ffcc00; display: none;}
         @media screen and (orientation: portrait) { #orientation-lock { display: flex !important; } }
 
@@ -35,7 +43,6 @@
         .color-picker { display: flex; justify-content: space-between; align-items: center; font-size: min(14px, 2.5vh); margin-top: 5px; }
         .color-picker input[type="color"] { cursor: pointer; border: none; width: 30px; height: 30px; background: none; }
         
-        /* قائمة اللاعبين العالمي */
         .global-players-box { margin-top: 2vh; border-top: 2px solid #555; padding-top: 1vh; flex-grow: 1; overflow-y: auto; max-height: 40vh;}
         .global-player-item { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 1vh; margin-bottom: 5px; border-radius: 5px; font-size: min(14px, 2.5vh); border-right: 3px solid #00ff00;}
         .global-player-item.ingame { border-right-color: #ff0000; opacity: 0.7;}
@@ -49,15 +56,6 @@
         .team-btn { font-size: 10px; padding: 3px 6px; border: none; border-radius: 3px; cursor: pointer; color: white;}
         .team-a { background: #0066ff;} .team-b { background: #ff3333;}
         #btn-start { width: 100%; background: #ffaa00; color: #000; border: none; font-size: min(18px, 3vh); padding: 1.5vh; font-weight: bold; border-radius: 5px; margin-top: auto;}
-
-        /* نافذة الدعوة */
-        #invite-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200000; display: none; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto;}
-        .invite-box { background: #111; border: 2px solid #00aaff; padding: 3vh 5vw; border-radius: 10px; text-align: center; box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);}
-        .invite-box h3 { color: #ffaa00; margin-top: 0; font-size: max(18px, 3vh);}
-        .invite-btns { display: flex; gap: 10px; justify-content: center; margin-top: 2vh;}
-        .invite-btns button { padding: 1vh 2vw; font-weight: bold; border-radius: 5px; cursor: pointer; border: none; font-size: max(14px, 2.5vh);}
-        .btn-accept { background: #00ff00; color: #000; } .btn-accept:active { background: #00cc00;}
-        .btn-decline { background: #ff3333; color: #fff; } .btn-decline:active { background: #cc0000;}
 
         #game-ui { display: none; }
         #crosshair { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); z-index: 10; pointer-events: none;}
@@ -88,7 +86,7 @@
         #weapon-ui:active { background: rgba(255, 170, 0, 0.4); }
         .gun-icon { font-size: min(24px, 4vh); margin-bottom: 2px;}
 
-        .btn-game { position: absolute; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255,255,255,0.3); color: white; font-weight: bold; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 50%; pointer-events: auto; font-size: min(16px, 3vh); z-index: 15; user-select: none;}
+        .btn-game { position: absolute; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255,255,255,0.3); color: white; font-weight: bold; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 50%; pointer-events: auto; font-size: min(16px, 3vh); z-index: 15; user-select: none; transition: 0.2s;}
         .btn-game:active { background: rgba(255, 255, 255, 0.4); }
         
         #btn-shoot { bottom: 5vh; right: 5vw; width: min(80px, 15vw); height: min(80px, 15vw); background: rgba(255, 170, 0, 0.2); border-color: #ffaa00; font-size: min(20px, 4vh);}
@@ -109,7 +107,7 @@
 
     <div id="start-screen">
         <h1 style="color: #00aaff; text-shadow: 0 0 15px #00aaff; margin-bottom: 5px;">PRO FPS</h1>
-        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">نظام اللوبي العالمي 🌍</p>
+        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">التحديث الاحترافي V4 🚀</p>
         <button class="btn-start-fs" id="btn-fs">دخول اللعبة</button>
     </div>
 
@@ -118,7 +116,6 @@
         <button class="btn-start-fs" id="btn-resume">استئناف اللعب</button>
     </div>
 
-    <!-- نافذة الدعوات -->
     <div id="invite-modal">
         <div class="invite-box">
             <h3 id="invite-text">دعوة للعب!</h3>
@@ -132,7 +129,6 @@
     <div id="orientation-lock">⚠️<br>يرجى تدوير الهاتف بالعرض للعب!</div>
 
     <div id="lobby-ui">
-        <!-- اللوحة اليسرى: التخصيص واللاعبين العالمي -->
         <div class="panel left-panel">
             <h3 style="margin: 0; color: #00aaff; text-align: center; font-size: min(18px, 3vh);">شخصيتي</h3>
             <input type="text" id="my-name" value="مقاتل" placeholder="اسمك">
@@ -142,13 +138,10 @@
             
             <div class="global-players-box">
                 <small style="color:#aaa; display:block; margin-bottom:5px; text-align:center;">اللاعبون المتصلون الآن 🌍</small>
-                <div id="global-players-list">
-                    <!-- سيتم إضافة اللاعبين هنا برمجياً -->
-                </div>
+                <div id="global-players-list"></div>
             </div>
         </div>
 
-        <!-- اللوحة اليمنى: غرفتك وإعدادات المعركة -->
         <div class="panel host-controls" id="host-panel">
             <h3 style="margin-top:0; color:#ffaa00; text-align: center; font-size: min(18px, 3vh);">مجموعتي الحالية</h3>
             <select class="mode-select" id="mode-select">
@@ -193,7 +186,8 @@
         </div>
 
         <div id="btn-heal" class="btn-game">💉<br><small>علاج</small></div>
-        <div id="btn-gloo" class="btn-game">🧊<br><small>ثلجة</small></div>
+        <!-- تم تعديل زر الثلجة ليعرض الرقم -->
+        <div id="btn-gloo" class="btn-game">🧊<br><small>3</small></div>
         <div id="btn-shoot" class="btn-game">🔥<br>نار</div>
         
         <div id="kill-feed"></div>
@@ -240,13 +234,12 @@
         });
     </script>
 
-    <!-- Firebase SDK Modular -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getDatabase, ref, set, update, push, onValue, onChildAdded, onDisconnect, off, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
         import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
 
-        // إعدادات Firebase الخاصة بك
+        // 🟢 إعدادات Firebase الخاصة بك 🟢
         const firebaseConfig = {
             apiKey: "AIzaSyCu-ZLiqfgvZ5Ew8kSn7Swh1Xflnh0QsH0",
             authDomain: "shop-clothes-224a3.firebaseapp.com",
@@ -300,6 +293,11 @@
         const MAX_AMMO = 30;
         let myAmmo = MAX_AMMO, isReloading = false;
 
+        // نظام الثلج الجديد
+        const MAX_GLOO = 3;
+        let glooCount = MAX_GLOO;
+        let isGlooReloading = false;
+
         let myLobbyMesh = null, gunMesh = null;
         let teamScoreA = 0, teamScoreB = 0, currentRound = 1;
         let aliveA = 0, aliveB = 0;
@@ -307,7 +305,6 @@
         function initFirebaseNetwork() {
             myId = 'player_' + Math.random().toString(36).substr(2, 6);
             
-            // 1. الاتصال باللوبي العالمي
             globalRef = ref(db, 'global_lobby');
             myGlobalRef = ref(db, 'global_lobby/' + myId);
             myInvitesRef = ref(db, 'invites/' + myId);
@@ -316,7 +313,6 @@
             onDisconnect(myGlobalRef).remove();
             onDisconnect(myInvitesRef).remove();
 
-            // الاستماع للاعبين المتاحين للعب
             onValue(globalRef, (snap) => {
                 const players = snap.val() || {};
                 const listEl = document.getElementById('global-players-list');
@@ -333,7 +329,6 @@
                 }
             });
 
-            // الاستماع للدعوات الواردة
             onChildAdded(myInvitesRef, (snap) => {
                 const invite = snap.val();
                 const inviteKey = snap.key;
@@ -341,24 +336,20 @@
                 document.getElementById('invite-text').innerText = `تلقيت دعوة للعب من ${invite.senderName} 🎮`;
                 modal.style.display = 'flex';
                 
-                // قبول الدعوة
                 document.getElementById('btn-accept').onclick = () => {
                     modal.style.display = 'none';
                     set(ref(db, 'invites/' + myId + '/' + inviteKey), null);
                     joinRoom(invite.roomId);
                 };
                 
-                // رفض الدعوة
                 document.getElementById('btn-decline').onclick = () => {
                     modal.style.display = 'none';
                     set(ref(db, 'invites/' + myId + '/' + inviteKey), null);
                 };
             });
 
-            // 2. إنشاء غرفة افتراضية خاصة بي بمجرد الدخول
             createMyOwnRoom();
 
-            // إعدادات تغيير الملف الشخصي
             const updateMyProfile = () => {
                 myProfile.name = document.getElementById('my-name').value || 'مقاتل';
                 myProfile.shirt = document.getElementById('c-shirt').value;
@@ -374,7 +365,6 @@
             document.getElementById('c-pants').addEventListener('input', updateMyProfile);
             document.getElementById('c-hair').addEventListener('input', updateMyProfile);
 
-            // زر بدء المعركة
             document.getElementById('btn-start').addEventListener('click', () => {
                 if(!isHost) return;
                 gameMode = document.getElementById('mode-select').value;
@@ -384,12 +374,11 @@
         }
 
         function createMyOwnRoom() {
-            detachRoomListeners(); // تنظيف الغرفة القديمة إذا وجدت
+            detachRoomListeners(); 
             currentRoomId = myId;
             isHost = true;
             setupRefs(currentRoomId);
             
-            // أنا المضيف في غرفتي
             onDisconnect(myPlayerRef).remove();
             set(myPlayerRef, { team: 'A', hp: MAX_HP, profile: myProfile, pos: {x:0, y:0, z:0}, rot: 0, isMoving: false });
             update(myGlobalRef, { status: 'idle' });
@@ -397,24 +386,22 @@
         }
 
         function joinRoom(roomId) {
-            detachRoomListeners(); // تنظيف الغرفة الحالية
-            set(myPlayerRef, null); // أخرج من غرفتي السابقة
+            detachRoomListeners(); 
+            set(myPlayerRef, null); 
             
             currentRoomId = roomId;
             isHost = false;
-            document.getElementById('mode-select').disabled = true; // إخفاء التحكم باللعبة
+            document.getElementById('mode-select').disabled = true; 
             document.getElementById('btn-start').style.display = 'none';
             
             setupRefs(currentRoomId);
             
-            // أدخل الغرفة كضيف
             onDisconnect(myPlayerRef).remove();
             set(myPlayerRef, { team: 'B', hp: MAX_HP, profile: myProfile, pos: {x:0, y:0, z:0}, rot: 0, isMoving: false });
             update(myGlobalRef, { status: 'in-room' });
             setupRoomListeners();
         }
 
-        // إرسال دعوة لاعب (وظيفة عامة للوصول من HTML)
         window.invitePlayer = function(targetId) {
             push(ref(db, 'invites/' + targetId), {
                 senderId: myId,
@@ -441,7 +428,6 @@
             if(stateRef) off(stateRef);
             if(actionsRef) off(actionsRef);
             
-            // إزالة شخصيات الغرفة القديمة من الشاشة
             for(let id in playersData) {
                 if(id !== myId && playersData[id].mesh) scene.remove(playersData[id].mesh);
             }
@@ -449,7 +435,6 @@
         }
 
         function setupRoomListeners() {
-            // الاستماع للاعبين
             onValue(playersRef, (snap) => {
                 let data = snap.val() || {};
                 
@@ -482,7 +467,6 @@
                 updateLobbyUI();
             });
 
-            // الاستماع لحالة اللعبة
             onValue(stateRef, (snap) => {
                 let state = snap.val();
                 if(!state) return;
@@ -501,7 +485,6 @@
                 }
             });
 
-            // الاستماع للأحداث (إطلاق نار وغيره)
             onChildAdded(actionsRef, (snap) => {
                 let action = snap.val();
                 if(!action || action.sender === myId) return; 
@@ -554,7 +537,7 @@
         }
         
         window.toggleTeam = function(id) { 
-            if(!isHost) return; // المضيف فقط يغير فرق الآخرين
+            if(!isHost) return; 
             if(playersData[id]) { 
                 let newTeam = playersData[id].team === 'A' ? 'B' : 'A';
                 update(ref(db, 'rooms/' + currentRoomId + '/players/' + id), { team: newTeam });
@@ -585,7 +568,10 @@
             ambientLight = new THREE.AmbientLight(0xffffff, 0.6); scene.add(ambientLight);
             dirLight = new THREE.DirectionalLight(0xffffff, 0.5); dirLight.position.set(50, 100, 50); scene.add(dirLight);
 
-            scene.background = new THREE.Color(0x87CEEB); scene.fog = new THREE.FogExp2(0x87CEEB, 0.015);
+            // تم تخفيف الضبابية هنا لتصبح الخرائط واضحة واحترافية!
+            scene.background = new THREE.Color(0x87CEEB); 
+            scene.fog = new THREE.FogExp2(0x87CEEB, 0.0025); // تغيير القيمة من 0.015 إلى 0.0025
+            
             const grass = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshBasicMaterial({color: 0x228B22}));
             grass.rotation.x = -Math.PI/2; lobbyEnv.add(grass);
             
@@ -821,10 +807,16 @@
             msg.style.display = 'flex';
             setTimeout(() => { if(isPlaying) msg.style.display = 'none'; }, 2000);
             
-            myHp = MAX_HP; isHealing = false; myAmmo = MAX_AMMO; isReloading = false; updateHUD(); updateWeaponUI();
+            myHp = MAX_HP; isHealing = false; myAmmo = MAX_AMMO; isReloading = false; 
+            
+            // تهيئة عدد الثلجات
+            glooCount = MAX_GLOO; isGlooReloading = false; updateGlooUI();
+            
+            updateHUD(); updateWeaponUI();
             
             lobbyEnv.visible = false;
-            scene.background = new THREE.Color(theme.bg); scene.fog = new THREE.FogExp2(theme.bg, 0.015);
+            // إظهار الخرائط بوضوح (تخفيف الضباب)
+            scene.background = new THREE.Color(theme.bg); scene.fog = new THREE.FogExp2(theme.bg, 0.0025);
             ambientLight.intensity = 0.6; dirLight.intensity = 0.7; 
 
             gunMesh.visible = true; myLobbyMesh.visible = false; 
@@ -871,7 +863,7 @@
             document.getElementById('msg-overlay').style.display = 'none';
             
             lobbyEnv.visible = true; scene.remove(currentMapObjects); 
-            scene.background = new THREE.Color(0x87CEEB); scene.fog = new THREE.FogExp2(0x87CEEB, 0.015);
+            scene.background = new THREE.Color(0x87CEEB); scene.fog = new THREE.FogExp2(0x87CEEB, 0.0025);
             ambientLight.intensity = 0.6; dirLight.intensity = 0.5; 
             
             gunMesh.visible = false; myLobbyMesh.visible = true;
@@ -881,8 +873,9 @@
 
         function placeGlooWallLocally(pos, rot) {
             if(window.sfx && window.sfx.playGloo) window.sfx.playGloo();
-            const geo = new THREE.BoxGeometry(8, 8, 1);
-            const mat = new THREE.MeshBasicMaterial({ color: 0x55ffff, transparent: true, opacity: 0.7 });
+            // جعل الثلجة أكثر سمكاً لمنع الاختراق
+            const geo = new THREE.BoxGeometry(10, 10, 2);
+            const mat = new THREE.MeshBasicMaterial({ color: 0x55ffff, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
             const gloo = new THREE.Mesh(geo, mat);
             gloo.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0xffffff })));
             gloo.position.copy(pos); gloo.rotation.y = rot;
@@ -893,6 +886,17 @@
                 const index = walls.indexOf(gloo);
                 if (index > -1) walls.splice(index, 1);
             }, 15000);
+        }
+
+        function updateGlooUI() {
+            const btn = document.getElementById('btn-gloo');
+            if (isGlooReloading) {
+                btn.innerHTML = `🧊<br><small style="color:red;">انتظر</small>`;
+                btn.style.opacity = 0.5;
+            } else {
+                btn.innerHTML = `🧊<br><small>${glooCount}</small>`;
+                btn.style.opacity = 1;
+            }
         }
 
         function addKillFeedMsg(killerName, victimName, isHeadshot) {
@@ -1088,12 +1092,32 @@
             document.getElementById('btn-shoot').addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
             document.getElementById('weapon-ui').addEventListener('touchstart', (e) => { e.preventDefault(); reloadWeapon(); });
             
+            // نظام الثلجة المحدث بمحدودية العدد ونظام الشحن
             document.getElementById('btn-gloo').addEventListener('touchstart', (e) => {
-                e.preventDefault(); if (!isPlaying || myHp <= 0) return;
+                e.preventDefault(); 
+                if (!isPlaying || myHp <= 0 || glooCount <= 0 || isGlooReloading) return;
+                
+                glooCount--;
+                updateGlooUI();
+
                 const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); dir.y = 0; dir.normalize();
-                const pos = camera.position.clone().add(dir.multiplyScalar(6)); pos.y = 4; 
+                // وضع الثلجة بمسافة أبعد لتجنب الرسبنة داخلها (8 بدلا من 6)
+                const pos = camera.position.clone().add(dir.multiplyScalar(8)); pos.y = 4; 
+                
                 placeGlooWallLocally(pos, yaw);
                 push(actionsRef, { type: 'GLOO_WALL', pos: {x: pos.x, y: pos.y, z: pos.z}, rot: yaw, sender: myId });
+
+                if (glooCount === 0) {
+                    isGlooReloading = true;
+                    updateGlooUI();
+                    // انتظر 10 ثواني لكي تشحن الثلجات
+                    setTimeout(() => {
+                        glooCount = MAX_GLOO;
+                        isGlooReloading = false;
+                        updateGlooUI();
+                        if(window.sfx && window.sfx.playReload) window.sfx.playReload(); // تشغيل صوت كإشعار للتحميل
+                    }, 10000);
+                }
             });
 
             document.getElementById('btn-heal').addEventListener('touchstart', (e) => {
@@ -1178,10 +1202,17 @@
                         const speedMulti = Math.min(1, Math.sqrt(moveX*moveX + moveZ*moveZ));
 
                         const dirX = new THREE.Vector3(dir.x, 0, 0).normalize();
-                        if (new THREE.Raycaster(camera.position, dirX, 0, 2.5).intersectObjects(walls, true).length === 0) camera.position.x += dir.x * moveSpeed * speedMulti;
+                        // نظام منع التعليق: إرجاع نقطة فحص الشعاع إلى الخلف قليلاً لعدم اختراق الثلجة
+                        const backOffX = new THREE.Vector3(-dirX.x, 0, 0).multiplyScalar(1.5);
+                        if (new THREE.Raycaster(camera.position.clone().add(backOffX), dirX, 0, 3.5).intersectObjects(walls, true).length === 0) {
+                            camera.position.x += dir.x * moveSpeed * speedMulti;
+                        }
                             
                         const dirZ = new THREE.Vector3(0, 0, dir.z).normalize();
-                        if (new THREE.Raycaster(camera.position, dirZ, 0, 2.5).intersectObjects(walls, true).length === 0) camera.position.z += dir.z * moveSpeed * speedMulti;
+                        const backOffZ = new THREE.Vector3(0, 0, -dirZ.z).multiplyScalar(1.5);
+                        if (new THREE.Raycaster(camera.position.clone().add(backOffZ), dirZ, 0, 3.5).intersectObjects(walls, true).length === 0) {
+                            camera.position.z += dir.z * moveSpeed * speedMulti;
+                        }
                     }
                 }
 
