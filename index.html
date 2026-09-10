@@ -281,11 +281,13 @@
         let aliveA = 0, aliveB = 0;
 
         // ==================== الشبكة (مُصلّحة) ====================
-        // إعدادات ICE: STUN لاكتشاف العنوان العام + TURN كاحتياط إجباري
-        // عندما تفشل STUN وحدها (شبكات موبايل / CGNAT)، اتصال البيانات
-        // الفعلي يفشل رغم أن الـ signaling عبر PeerJS ينجح — وهذا بالضبط
-        // ما يفسّر "يظهر متصل لكن ما تشوفوش بالساحة".
-        const ICE_SERVERS = [
+        // ضع بيانات حسابك المجاني من dashboard.metered.ca هنا.
+        // إذا تركتهما فارغين، سيستعمل الكود تلقائياً سيرفر demo عمومي
+        // (openrelay) وهو أضعف استقراراً لكنه يشتغل بدون تسجيل.
+        const METERED_APP = '';   // مثال: 'yourapp'  (يصير yourapp.metered.live)
+        const METERED_KEY = '';   // الـ API Key من اللوحة (وليس الـ Secret Key)
+
+        const FALLBACK_ICE_SERVERS = [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
             { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
@@ -293,9 +295,30 @@
             { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
         ];
 
-        function initNetwork() {
+        let currentIceServers = FALLBACK_ICE_SERVERS;
+
+        // يجلب TURN credentials حقيقية من حسابك (أكثر استقراراً من demo عمومي).
+        // عند الفشل (لا حساب، لا إنترنت للـ API، إلخ) يرجع للقائمة الاحتياطية
+        // فلا ينكسر شيء حتى بدون تسجيل.
+        async function fetchIceServers() {
+            if (!METERED_APP || !METERED_KEY) return FALLBACK_ICE_SERVERS;
+            try {
+                const res = await fetch(`https://${METERED_APP}.metered.live/api/v1/turn/credentials?apiKey=${METERED_KEY}`);
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const servers = await res.json();
+                if (Array.isArray(servers) && servers.length) return servers;
+                throw new Error('empty response');
+            } catch (e) {
+                console.warn('Metered TURN fetch failed, using fallback:', e);
+                return FALLBACK_ICE_SERVERS;
+            }
+        }
+
+        async function initNetwork() {
             myId = 'fps_' + Math.random().toString(36).substr(2, 5);
-            peer = new Peer(myId, { config: { 'iceServers': ICE_SERVERS } });
+            setConnStatus('جارِ تجهيز الاتصال...');
+            currentIceServers = await fetchIceServers();
+            peer = new Peer(myId, { config: { 'iceServers': currentIceServers } });
             window.appPeer = peer;
 
             peer.on('open', (id) => {
@@ -324,25 +347,41 @@
                 setTimeout(() => { updateLobbyUI(); broadcastLobbyState(); }, 1000);
             });
 
-            document.getElementById('btn-join').addEventListener('click', () => {
+            document.getElementById('btn-join').addEventListener('click', () => attemptJoin(false));
+
+            // forceRelay=true يجبر الاتصال على المرور حصرياً عبر TURN (relay)،
+            // متجاهلاً محاولات الاتصال المباشر. أبطأ قليلاً لكنه يخترق أغلب
+            // أنواع الـ NAT الصارمة (4G المتماثل / CGNAT) التي تفشل معها
+            // المحاولة العادية. نستعملها فقط كخطة بديلة تلقائية بعد فشل أول محاولة.
+            function attemptJoin(forceRelay) {
                 const friendId = document.getElementById('friend-id').value.trim();
                 if(!friendId) return;
                 const joinBtn = document.getElementById('btn-join');
-                joinBtn.innerText = "جارِ الاتصال..."; joinBtn.disabled = true;
-                setConnStatus('جارِ محاولة الاتصال...');
-                isHost = false; 
-                let conn = peer.connect(friendId, { reliable: true }); 
-                connections[friendId] = conn; 
+                joinBtn.innerText = forceRelay ? "محاولة أخيرة (Relay)..." : "جارِ الاتصال...";
+                joinBtn.disabled = true;
+                setConnStatus(forceRelay ? 'جارِ الإجبار عبر TURN فقط...' : 'جارِ محاولة الاتصال...');
+                isHost = false;
+
+                const connConfig = { iceServers: currentIceServers };
+                if (forceRelay) connConfig.iceTransportPolicy = 'relay';
+
+                let conn = peer.connect(friendId, { reliable: true, config: connConfig });
+                connections[friendId] = conn;
                 setupConnectionEvents(conn);
 
-                // مهلة أمان: إذا لم يفتح الاتصال خلال 15 ثانية، أبلغ المستخدم بدل الانتظار الصامت
                 setTimeout(() => {
                     if (!conn.open) {
-                        setConnStatus('فشل الاتصال. تأكد من الكود، أو جرب شبكة إنترنت أخرى (Wi-Fi بدل 4G أو العكس).');
-                        joinBtn.innerText = "انضمام ➔"; joinBtn.disabled = false;
+                        try { conn.close(); } catch(e) {}
+                        delete connections[friendId];
+                        if (!forceRelay) {
+                            attemptJoin(true); // إعادة محاولة تلقائية بإجبار relay-only
+                        } else {
+                            setConnStatus('فشل الاتصال حتى مع الإجبار عبر relay. تأكد من الكود، أو أن الشبكة تحجب WebRTC كلياً.');
+                            joinBtn.innerText = "انضمام ➔"; joinBtn.disabled = false;
+                        }
                     }
-                }, 15000);
-            });
+                }, 12000);
+            }
 
             document.getElementById('btn-start').addEventListener('click', () => {
                 gameMode = document.getElementById('mode-select').value;
