@@ -694,14 +694,14 @@
                 let data = snap.val() || {};
                 
                 for(let id in data) {
-                    if (!data[id] || typeof data[id].hp === 'undefined') continue; // فلترة البيانات الفارغة والوهمية
+                    if (!data[id] || typeof data[id].hp === 'undefined') continue;
 
                     if(id === myId) { 
                         myTeam = data[id].team || 'A';
                         myKills = data[id].kills || 0;
                         document.getElementById('my-kills-display').innerText = myKills;
                         
-                        // فحص الموت الذاتي (لكي يعمل عداد الـ 5 ثواني محلياً فور تصفير الدم)
+                        // فحص الموت الذاتي وفحص ما إذا أصبحت الصحة 0 لتشغيل العداد فوراً
                         if (data[id].hp <= 0 && myHp > 0 && !isRespawning) {
                             handlePlayerDeath();
                         }
@@ -1371,6 +1371,7 @@
             isHealing = false; isRespawning = true;
             document.getElementById('heal-progress-container').style.display = 'none';
             if (myThirdPersonMesh) playRagdollFallAndDisappear(myThirdPersonMesh);
+            if (gunMesh) gunMesh.visible = false;
 
             const banner = document.getElementById('respawn-banner');
             banner.style.display = 'block';
@@ -1398,6 +1399,7 @@
             updateHUD();
             updateWeaponUI();
 
+            if (!isThirdPerson && gunMesh) gunMesh.visible = true;
             resetCharacterVisuals(myThirdPersonMesh);
             update(myPlayerRef, { hp: MAX_HP, pos: { x: newPos.x, y: 0, z: newPos.z } });
             updateCameraAndPlayerTransform();
@@ -1582,7 +1584,7 @@
                         if (rayX.intersectObjects(walls, true).length === 0) {
                             playerPos.x = Math.max(-142, Math.min(142, nextX));
                         }
-                        if (rayZ.intersectObjects, true).length === 0) {
+                        if (rayZ.intersectObjects(walls, true).length === 0) {
                             playerPos.z = Math.max(-142, Math.min(142, nextZ));
                         }
                     }
