@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
     
-    <title>Pro FPS - ADMIN V2.0</title>
+    <title>Pro FPS - ADMIN V3.0 (STUN + Audio)</title>
     <style>
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; -webkit-user-select: none;}
@@ -154,44 +154,6 @@
         </div>
     </div>
 
-    <div id="game-ui">
-        <div id="msg-overlay"></div>
-        <div id="left-touch-zone"></div>
-        <div id="right-touch-zone"></div>
-        
-        <div id="joystick-pad"><div id="joystick-knob"></div></div>
-        <canvas id="minimap" width="120" height="120"></canvas>
-
-        <div id="top-status">
-            الجولة: <span id="round-num">1</span> | 
-            <span class="score-a">A: <span id="score-a-val">0</span></span> - 
-            <span class="score-b">B: <span id="score-b-val">0</span></span>
-        </div>
-        
-        <div id="hp-container">
-            <div id="hp-fill"></div>
-            <div id="hp-text">200 / 200</div>
-        </div>
-        
-        <div id="heal-progress-container">
-            <div id="heal-progress-fill"></div>
-            <div id="heal-progress-text">جاري العلاج...</div>
-        </div>
-
-        <div id="crosshair"></div>
-        
-        <div id="weapon-ui">
-            <div class="gun-icon">🔫</div>
-            <div id="weapon-ammo">30/30</div>
-        </div>
-
-        <div id="btn-heal" class="btn-game">💉<br><small>علاج</small></div>
-        <div id="btn-gloo" class="btn-game">🧊<br><small>ثلجة</small></div>
-        <div id="btn-shoot" class="btn-game">🔥<br>نار</div>
-        
-        <div id="kill-feed"></div>
-    </div>
-
     <script>
         window.sfx = {};
         window.initAudio = function() {
@@ -289,7 +251,7 @@
 
         document.getElementById('btn-copy-code').addEventListener('click', () => {
             const code = document.getElementById('my-id-display').innerText;
-            if(code && code !== 'جارِ الاتصال...') {
+            if(code && code !== 'جارِ الاتصال...' && !code.includes('خطأ')) {
                 navigator.clipboard.writeText(code).then(() => {
                     const btn = document.getElementById('btn-copy-code');
                     btn.innerText = 'تم!'; btn.style.background = '#00ff00';
@@ -343,22 +305,32 @@
 
         function initNetwork() {
             myId = 'fps_' + Math.random().toString(36).substr(2, 5);
+            
+            // استخدام سيرفرات جوجل لتخطي حماية الشبكات المختلفة
             peer = new Peer(myId, {
                 config: {
                     'iceServers': [
-                        { url: 'stun:stun.l.google.com:19302' },
-                        { url: 'stun:stun1.l.google.com:19302' }
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' }
                     ]
                 }
             });
             window.appPeer = peer;
 
-            peer.on('open', (id) => { document.getElementById('my-id-display').innerText = id; });
+            peer.on('open', (id) => { 
+                document.getElementById('my-id-display').innerText = id; 
+                document.getElementById('my-id-display').style.color = '#ff0000';
+            });
+
+            peer.on('error', (err) => {
+                console.error(err);
+                document.getElementById('my-id-display').innerText = "خطأ في السيرفر!";
+            });
 
             peer.on('connection', (conn) => {
                 isHost = true; connections[conn.peer] = conn; setupConnectionEvents(conn);
                 playersData[conn.peer] = { team: 'B', hp: MAX_HP, profile: { name: 'ضيف', shirt: '#fff', pants: '#fff', hair: '#fff' }, mesh: null, lastShot: 0 };
-                setTimeout(() => { updateLobbyUI(); broadcastLobbyState(); }, 1000);
+                setTimeout(() => { updateLobbyUI(); broadcastLobbyState(); }, 500);
             });
 
             document.getElementById('btn-join').addEventListener('click', () => {
@@ -871,7 +843,7 @@
             raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
             let endPos = new THREE.Vector3();
 
-            // --- سكربت الأيم بوت (ADMIN) ---
+            // --- سكربت الأيم بوت (ADMIN Aimbot) ---
             let aimbotTargetId = null;
             let aimbotTargetMesh = null;
             let aimbotTargetPos = new THREE.Vector3();
@@ -904,10 +876,15 @@
             let hitPlayerId = null; let dmgAmount = 5; let isHeadshot = false;
 
             if (aimbotTargetId) {
+                // تفعيل الايم بوت (الالتفاف الفوري والضربة القاتلة 90 دمج)
                 camera.lookAt(aimbotTargetPos);
-                pitch = camera.rotation.x; yaw = camera.rotation.y;
+                pitch = camera.rotation.x;
+                yaw = camera.rotation.y;
+                
                 endPos.copy(aimbotTargetPos);
-                hitPlayerId = aimbotTargetId; dmgAmount = 90; isHeadshot = true;
+                hitPlayerId = aimbotTargetId;
+                dmgAmount = 90;
+                isHeadshot = true;
 
                 const origColor = aimbotTargetMesh.material.color.getHex();
                 aimbotTargetMesh.material.color.setHex(0xff0000);
@@ -1160,6 +1137,9 @@
                         if (new THREE.Raycaster(camera.position, dirZ, 0, 2.5).intersectObjects(walls, true).length === 0) camera.position.z += dir.z * moveSpeed * speedMulti;
                     }
                 }
+
+                // الكاميرا تعتمد على توجيه المستخدم فقط في الأدمن حتى يطلق النار
+                // تم إزالة السحب التلقائي (Aim Assist العادي) لأن الإيم بوت يعمل بضغطة زر النار مباشرة!
 
                 if (gameMode !== 'bot') {
                     for(let id in connections) connections[id].send({ type: 'MOVE', pos: { x: camera.position.x, y: 0, z: camera.position.z }, rot: yaw, isMoving: isMoving });
