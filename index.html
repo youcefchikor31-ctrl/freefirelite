@@ -320,9 +320,9 @@
         function createProceduralWeapon() {
             const gunGroup = new THREE.Group();
             
-            const darkMetal = new THREE.MeshStandardMaterial({color: 0x111111, roughness: 0.6, metalness: 0.8});
-            const lightMetal = new THREE.MeshStandardMaterial({color: 0x555555, roughness: 0.4, metalness: 0.9});
-            const accent = new THREE.MeshStandardMaterial({color: 0x00aaff, emissive: 0x003366}); 
+            const darkMetal = new THREE.MeshStandardMaterial({color: 0x111111, roughness: 0.6, metalness: 0.8, transparent: true});
+            const lightMetal = new THREE.MeshStandardMaterial({color: 0x555555, roughness: 0.4, metalness: 0.9, transparent: true});
+            const accent = new THREE.MeshStandardMaterial({color: 0x00aaff, emissive: 0x003366, transparent: true}); 
             
             const body = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.3, 0.9), darkMetal);
             const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.8, 12), lightMetal);
@@ -358,7 +358,7 @@
             ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 10, 256, 44);
             ctx.font = 'bold 30px sans-serif'; ctx.fillStyle = '#ffaa00';
             ctx.textAlign = 'center'; ctx.fillText(name, 128, 42);
-            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false }));
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false, transparent: true }));
             sprite.scale.set(6, 1.5, 1); sprite.position.y = -0.5; sprite.name = "nameTag"; return sprite;
         }
 
@@ -425,8 +425,7 @@
         function resetCharacterVisuals(group) {
             if(!group) return;
             group.position.y = 0;
-            group.rotation.x = 0;
-            group.rotation.z = 0;
+            group.rotation.set(0, 0, 0);
             group.visible = true;
             group.traverse(c => {
                 if(c.isMesh && c.material) {
@@ -450,17 +449,16 @@
             const targetY = 0.5;
 
             const fallInterval = setInterval(() => {
-                progress += 0.05;
+                progress += 0.08;
                 mesh.rotation.x = THREE.MathUtils.lerp(startRotX, targetRotX, Math.min(1, progress));
                 mesh.position.y = THREE.MathUtils.lerp(startY, targetY, Math.min(1, progress));
 
                 if (progress >= 1.0) {
                     clearInterval(fallInterval);
-                    // بدء التلاشي والاختفاء
                     setTimeout(() => {
                         let fade = 1.0;
                         const fadeInterval = setInterval(() => {
-                            fade -= 0.05;
+                            fade -= 0.08;
                             mesh.traverse(c => {
                                 if (c.isMesh && c.material) {
                                     c.material.transparent = true;
@@ -471,10 +469,10 @@
                                 clearInterval(fadeInterval);
                                 mesh.visible = false;
                             }
-                        }, 50);
-                    }, 800);
+                        }, 40);
+                    }, 400);
                 }
-            }, 20);
+            }, 25);
         }
 
         function applyProfileToMesh(group, profile) {
@@ -819,8 +817,7 @@
             setupControls(); animate();
         }
 
-        function getRandomSpawnPoint(minDist = 30) {
-            // توليد أماكن عشوائية متباعدة داخل الخريطة
+        function getRandomSpawnPoint() {
             const borderLimit = 55;
             let x = (Math.random() - 0.5) * (borderLimit * 2);
             let z = (Math.random() - 0.5) * (borderLimit * 2);
@@ -839,13 +836,11 @@
             aliveA = 0; aliveB = 0;
             const spawns = {};
 
-            // توزيع عشوائي لمكان المضيف
             const mySpawn = getRandomSpawnPoint();
             spawns[myId] = mySpawn;
 
             if(gameMode === 'bot') {
                 aliveA = 1; aliveB = 1;
-                // مكان عشوائي للروبوت بعيد عن اللاعب
                 let botSpawn = getRandomSpawnPoint();
                 while(Math.hypot(botSpawn.x - mySpawn.x, botSpawn.z - mySpawn.z) < 40) {
                     botSpawn = getRandomSpawnPoint();
@@ -1003,7 +998,7 @@
         }
 
         function switchToGameScene(spawnPos, themeIdx) {
-            inLobby = false; isPlaying = true;
+            inLobby = false; isPlaying = true; isTransitioningRound = false;
             document.getElementById('lobby-ui').style.display = 'none';
             document.getElementById('game-ui').style.display = 'block';
             
@@ -1026,7 +1021,6 @@
             gunMesh.visible = true; 
             myLobbyMesh.visible = false; 
 
-            // إعادة ضبط وتنشيط مجسمات اللاعبين للجولة الجديدة
             for(let id in playersData) { 
                 if(playersData[id].mesh) {
                     resetCharacterVisuals(playersData[id].mesh);
@@ -1044,7 +1038,6 @@
                 let winnerTeam = aliveA > 0 ? 'A' : 'B';
                 if (winnerTeam === 'A') teamScoreA++; else teamScoreB++;
                 
-                // شرط الفوز بالمباراة: وصول أي فريق أو لاعب إلى 4 جولات
                 let matchOver = (teamScoreA >= 4 || teamScoreB >= 4);
                 set(stateRef, { 
                     type: 'ROUND_OVER', 
@@ -1291,16 +1284,21 @@
             drawBullet(startPos, endPos); 
 
             push(actionsRef, { type: 'BULLET_FIRED', start: {x:startPos.x,y:startPos.y,z:startPos.z}, end: {x:endPos.x,y:endPos.y,z:endPos.z}, sender: myId });
+            
             if(hitPlayerId && hitPlayerId !== 'bot') {
                 push(actionsRef, { type: 'HIT', victim: hitPlayerId, damage: dmgAmount, headshot: isHeadshot, sender: myId });
             } 
             else if (hitPlayerId === 'bot' && playersData['bot'].hp > 0) {
-                playersData['bot'].hp -= dmgAmount;
+                playersData['bot'].hp = Math.max(0, playersData['bot'].hp - dmgAmount);
+                update(ref(db, 'rooms/' + currentRoomId + '/players/bot'), { hp: playersData['bot'].hp });
+
                 if (playersData['bot'].hp <= 0) {
-                    playersData['bot'].hp = 0; 
                     addKillFeedMsg(myProfile.name, 'روبوت', isHeadshot);
                     playRagdollFallAndDisappear(playersData['bot'].mesh);
-                    if(isHost && isPlaying) { aliveB--; checkRoundEnd(); }
+                    if(isHost && isPlaying) { 
+                        aliveB = 0; 
+                        checkRoundEnd(); 
+                    }
                 }
             }
         }
@@ -1341,7 +1339,6 @@
         function handleDeath() {
             isPlaying = false; isHealing = false; document.getElementById('heal-progress-container').style.display = 'none';
             
-            // سقوط كاميرا الشخص الأول كإحساس بالسقوط على الأرض
             let fallCam = setInterval(() => {
                 if (camera.position.y > 1.5) {
                     camera.position.y -= 0.3;
@@ -1610,6 +1607,7 @@
                     lastNetworkUpdate = time;
                 }
 
+                // تحديث وتصرف الروبوت الذكي (فقط عندما يكون حياً دمه أكبر من صفر)
                 if (gameMode === 'bot' && isHost && playersData['bot'] && playersData['bot'].hp > 0) {
                     const bot = playersData['bot']; const botPos = bot.mesh.position; const headPos = botPos.clone().setY(6);
                     const distToPlayer = headPos.distanceTo(camera.position); const dirToPlayer = camera.position.clone().sub(headPos).normalize();
@@ -1663,7 +1661,7 @@
                     while(diffYaw > Math.PI) diffYaw -= Math.PI*2;
                     playersData[id].mesh.rotation.y += diffYaw * 0.15;
                 }
-                if (playersData[id].mesh && id !== 'bot') {
+                if (playersData[id].mesh && id !== 'bot' && playersData[id].hp > 0) {
                     animateCharacter(playersData[id].mesh, false, time);
                 }
             }
