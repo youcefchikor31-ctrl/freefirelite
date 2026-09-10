@@ -7,11 +7,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-title" content="Pro FPS">
+    <meta name="apple-mobile-web-app-title" content="Pro FPS 3D">
     
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111' rx='20'/%3E%3Ccircle cx='50' cy='50' r='35' stroke='%23ffaa00' stroke-width='5' fill='none'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ff0000'/%3E%3Cline x1='50' y1='5' x2='50' y2='25' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='50' y1='95' x2='50' y2='75' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='5' y1='50' x2='25' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='95' y1='50' x2='75' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
 
-    <title>Pro FPS - AK47 Fixed</title>
+    <title>Pro FPS - Full 3D Character</title>
     <style>
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; -webkit-user-select: none;}
@@ -39,9 +39,7 @@
         .panel { background: rgba(0,0,0,0.7); padding: 2vh; border-radius: 10px; border: 1px solid #00aaff; pointer-events: auto; backdrop-filter: blur(5px); max-height: 90vh; display: flex; flex-direction: column; gap: 1vh;}
         
         .left-panel { position: absolute; left: 2vw; top: 5vh; width: 35vw; max-width: 280px; }
-        .left-panel input[type="text"] { width: 100%; padding: 1vh; background: #222; color: #fff; border: 1px solid #00aaff; text-align: center; font-weight: bold; border-radius: 5px;}
-        .color-picker { display: flex; justify-content: space-between; align-items: center; font-size: min(14px, 2.5vh); margin-top: 5px; }
-        .color-picker input[type="color"] { cursor: pointer; border: none; width: 30px; height: 30px; background: none; }
+        .left-panel input[type="text"] { width: 100%; padding: 1vh; background: #222; color: #fff; border: 1px solid #00aaff; text-align: center; font-weight: bold; border-radius: 5px; font-size: min(16px, 2.5vh);}
         
         .global-players-box { margin-top: 2vh; border-top: 2px solid #555; padding-top: 1vh; flex-grow: 1; overflow-y: auto; max-height: 40vh;}
         .global-player-item { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 1vh; margin-bottom: 5px; border-radius: 5px; font-size: min(14px, 2.5vh); border-right: 3px solid #00ff00;}
@@ -50,7 +48,7 @@
         .btn-invite:active { background: #0077cc; }
 
         .host-controls { position: absolute; right: 2vw; top: 5vh; width: 35vw; max-width: 280px; }
-        .mode-select { width: 100%; padding: 1vh; margin-bottom: 1vh; background: #333; color: white; border-radius: 5px; }
+        .mode-select { width: 100%; padding: 1vh; margin-bottom: 1vh; background: #333; color: white; border-radius: 5px; font-size: min(14px, 2.5vh);}
         .player-list { max-height: 30vh; overflow-y: auto; margin-bottom: 1vh; font-size: min(14px, 2.5vh); }
         .player-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; padding: 5px; background: rgba(0,0,0,0.5); border-radius: 4px;}
         .team-btn { font-size: 10px; padding: 3px 6px; border: none; border-radius: 3px; cursor: pointer; color: white;}
@@ -103,6 +101,7 @@
         @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; display: none; } }
     </style>
 
+    <!-- تضمين مسار GLTFLoader -->
     <script type="importmap"> { 
         "imports": { 
             "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
@@ -114,7 +113,7 @@
 
     <div id="start-screen">
         <h1 style="color: #00aaff; text-shadow: 0 0 15px #00aaff; margin-bottom: 5px;">PRO FPS</h1>
-        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">سلاح 3D (AK47) 🔥</p>
+        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">تحديث الشخصيات 3D 🦸‍♂️</p>
         <button class="btn-start-fs" id="btn-fs">دخول اللعبة</button>
     </div>
 
@@ -137,14 +136,12 @@
 
     <div id="lobby-ui">
         <div class="panel left-panel">
-            <h3 style="margin: 0; color: #00aaff; text-align: center; font-size: min(18px, 3vh);">شخصيتي</h3>
+            <h3 style="margin: 0 0 1vh 0; color: #00aaff; text-align: center; font-size: min(18px, 3vh);">شخصيتي</h3>
             <input type="text" id="my-name" value="مقاتل" placeholder="اسمك">
-            <div class="color-picker">القميص: <input type="color" id="c-shirt" value="#0055ff"></div>
-            <div class="color-picker">السروال: <input type="color" id="c-pants" value="#222222"></div>
-            <div class="color-picker">الشعر: <input type="color" id="c-hair" value="#ffaa00"></div>
+            <small style="color:#aaa; display:block; margin-top:1vh; text-align:center;">يتم تحميل تفاصيل شخصيتك (player.glb) تلقائياً.</small>
             
             <div class="global-players-box">
-                <small style="color:#aaa; display:block; margin-bottom:5px; text-align:center;">اللاعبون المتصلون الآن 🌍</small>
+                <small style="color:#ffaa00; display:block; margin-bottom:5px; text-align:center; font-weight:bold;">اللاعبون المتصلون الآن 🌍</small>
                 <div id="global-players-list"></div>
             </div>
         </div>
@@ -240,6 +237,7 @@
         });
     </script>
 
+    <!-- تضمين مكتبات Firebase V10 Modular و GLTFLoader -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getDatabase, ref, set, update, push, onValue, onChildAdded, onDisconnect, off, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
@@ -279,7 +277,8 @@
         let roomRef, playersRef, myPlayerRef, actionsRef, stateRef;
         
         let playersData = {}; 
-        let myProfile = { name: 'مقاتل', shirt: '#0055ff', pants: '#222222', hair: '#ffaa00' };
+        // حذفنا الألوان لأن الشخصية الثلاثية الأبعاد تمتلك ألوانها الخاصة
+        let myProfile = { name: 'مقاتل' };
         let myTeam = 'A', gameMode = 'bot';
 
         let camera, scene, renderer, walls = [], lobbyEnv = new THREE.Group(), currentMapObjects = new THREE.Group(); 
@@ -358,18 +357,12 @@
 
             const updateMyProfile = () => {
                 myProfile.name = document.getElementById('my-name').value || 'مقاتل';
-                myProfile.shirt = document.getElementById('c-shirt').value;
-                myProfile.pants = document.getElementById('c-pants').value;
-                myProfile.hair = document.getElementById('c-hair').value;
                 applyProfileToMesh(myLobbyMesh, myProfile);
                 
                 update(myGlobalRef, { name: myProfile.name });
                 if(myPlayerRef) update(myPlayerRef, { profile: myProfile });
             };
             document.getElementById('my-name').addEventListener('input', updateMyProfile);
-            document.getElementById('c-shirt').addEventListener('input', updateMyProfile);
-            document.getElementById('c-pants').addEventListener('input', updateMyProfile);
-            document.getElementById('c-hair').addEventListener('input', updateMyProfile);
 
             document.getElementById('btn-start').addEventListener('click', () => {
                 if(!isHost) return;
@@ -448,7 +441,8 @@
                     if(id === myId && id !== 'bot') { myTeam = data[id].team; continue; }
                     
                     if(!playersData[id]) {
-                        playersData[id] = { hp: data[id].hp, mesh: createMinecraftCharacter(data[id].profile), lastShot: 0 };
+                        // تم تحديث الدالة لتقوم بتحميل الشخصية الـ 3D الجديدة
+                        playersData[id] = { hp: data[id].hp, mesh: create3DCharacter(data[id].profile), lastShot: 0 };
                         if(scene) scene.add(playersData[id].mesh);
                     }
                     
@@ -460,6 +454,7 @@
                     if (data[id].pos && playersData[id].mesh) {
                         playersData[id].mesh.position.set(data[id].pos.x, data[id].pos.y, data[id].pos.z);
                         playersData[id].mesh.rotation.y = data[id].rot;
+                        // يمكننا ترك الانيميشن البسيط في حال كانت الشخصية لا تمتلك عظام جاهزة
                         animateCharacter(playersData[id].mesh, data[id].isMoving, performance.now());
                     }
                 }
@@ -589,53 +584,45 @@
             scene.add(lobbyEnv);
             
             // ---------------------------------------------------------
-            // إعداد مجموعة السلاح والكاميرا (تعديل جذري)
+            // إعداد الشخصية (السلاح) للكاميرا (منظور الشخص الأول)
             // ---------------------------------------------------------
             gunMesh = new THREE.Group();
             camera.add(gunMesh);
             gunMesh.visible = false;
 
-            // تحديد نقطة خروج الرصاصة (Muzzle) لتكون متناسقة مع مكان السلاح الجديد
+            // تحديد نقطة خروج الرصاصة
             const muzzle = new THREE.Object3D(); 
-            muzzle.position.set(0.4, -0.2, -2.0); // دفعناها للأمام لتكون مع الفوهة
+            muzzle.position.set(0, -0.5, -3.0); 
             muzzle.name = "muzzle";
             gunMesh.add(muzzle);
 
-            // تحميل السلاح الثلاثي الأبعاد بالخوارزمية الذكية (التوسيط والتصغير التلقائي)
+            // تحميل الشخصية 3D ووضع الكاميرا في مكان الرأس!
             const loader = new GLTFLoader();
-            loader.load('AK47.compressed.glb?v=2', function (gltf) {
-                const ak47 = gltf.scene;
-                
-                // 1. حساب الحجم الفعلي للسلاح وتوسيطه (لحل مشكلة إطلاق النار من العدم)
-                const box = new THREE.Box3().setFromObject(ak47);
+            loader.load('player.glb', function (gltf) {
+                const fpModel = gltf.scene;
+                const box = new THREE.Box3().setFromObject(fpModel);
                 const center = box.getCenter(new THREE.Vector3());
                 const size = box.getSize(new THREE.Vector3());
                 
-                // سحب السلاح ليكون مركزه نقطة الصفر
-                ak47.position.sub(center); 
+                fpModel.position.sub(center); 
+                const scaleFactor = 6 / Math.max(size.x, size.y, size.z);
                 
-                // 2. تصغير السلاح تلقائياً ليناسب الشاشة (طوله سيكون 1.5 وحدة)
-                const maxDim = Math.max(size.x, size.y, size.z);
-                const scaleFactor = 1.5 / maxDim;
+                const container = new THREE.Group();
+                container.add(fpModel);
+                container.scale.set(scaleFactor, scaleFactor, scaleFactor);
                 
-                // حاوية للتحكم بالسلاح بعد توسيطه
-                const weaponContainer = new THREE.Group();
-                weaponContainer.add(ak47);
-                weaponContainer.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                // سحب الجسم للأسفل وللأمام قليلاً لتصبح الكاميرا في العيون وترى السلاح
+                container.position.set(0, -3.0, -0.5);
+                container.rotation.y = Math.PI; 
                 
-                // 3. ضبط مكان السلاح (يمين، أسفل، أمام الكاميرا)
-                weaponContainer.position.set(0.4, -0.4, -1);
-                
-                // 4. ضبط دوران السلاح (إذا كان السلاح يعطيك جانبه، غير هذا الرقم إلى Math.PI/2 أو -Math.PI/2)
-                weaponContainer.rotation.y = Math.PI / 2; // أغلب الأسلحة المجانية تحتاج هذا الدوران
-                
-                gunMesh.add(weaponContainer);
+                gunMesh.add(container);
             }, undefined, function (error) {
-                console.error('خطأ في تحميل السلاح:', error);
+                console.error('تأكد من وجود ملف player.glb بجانب ملف اللعبة:', error);
             });
             // ---------------------------------------------------------
 
-            myLobbyMesh = createMinecraftCharacter(myProfile); scene.add(myLobbyMesh);
+            myLobbyMesh = create3DCharacter(myProfile); 
+            scene.add(myLobbyMesh);
 
             raycaster = new THREE.Raycaster();
             renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -659,47 +646,63 @@
             sprite.scale.set(6, 1.5, 1); sprite.position.y = -0.5; sprite.name = "nameTag"; return sprite;
         }
 
-        function createMinecraftCharacter(profile) {
+        // --- الدالة الجديدة لتحميل الشخصية الثلاثية الأبعاد للأصدقاء والخصوم ---
+        function create3DCharacter(profile) {
             const group = new THREE.Group();
-            const skinMat = new THREE.MeshLambertMaterial({ color: 0xffccaa }); 
-            const shirtMat = new THREE.MeshLambertMaterial({ color: profile.shirt }); 
-            const pantsMat = new THREE.MeshLambertMaterial({ color: profile.pants }); 
-            const hairMat = new THREE.MeshLambertMaterial({ color: profile.hair }); 
             
-            const createPart = (geo, mat, name, yPos, parentY = 0) => {
-                const mesh = new THREE.Mesh(geo, mat.clone()); mesh.name = name; mesh.position.y = yPos;
-                const pivot = new THREE.Group(); pivot.position.y = parentY; pivot.add(mesh); pivot.name = name + "_pivot";
-                group.add(pivot); return pivot;
-            };
+            // إضافة الاسم فوق الشخصية
+            const nameSprite = createNameSprite(profile.name);
+            nameSprite.position.y = 7.5;
+            group.add(nameSprite);
 
-            const headP = createPart(new THREE.BoxGeometry(2, 2, 2), skinMat, "head", 1, 6);
-            const hair = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.5, 2.1), hairMat); hair.position.y = 2.2; hair.name = "hair"; headP.children[0].add(hair);
+            // إضافة مربعات تصادم وهمية (Hitboxes) لتفعيل الهيدشوت والدمج
+            const headGeo = new THREE.BoxGeometry(2, 2, 2);
+            const headMat = new THREE.MeshBasicMaterial({visible: false});
+            const head = new THREE.Mesh(headGeo, headMat);
+            head.position.y = 5.5; head.name = "head";
+            group.add(head);
 
-            createPart(new THREE.BoxGeometry(0.8, 0.5, 0.8), skinMat, "neck", 0, 5.5);
-            createPart(new THREE.BoxGeometry(2, 1.5, 1), shirtMat, "chest", -0.75, 5.5);
-            createPart(new THREE.BoxGeometry(2, 1.5, 1), shirtMat, "belly", -2.25, 5.5);
-            
-            const armL = createPart(new THREE.BoxGeometry(1, 3, 1), skinMat, "armL", -1.5, 5.5); armL.position.x = -1.5;
-            const armR = createPart(new THREE.BoxGeometry(1, 3, 1), skinMat, "armR", -1.5, 5.5); armR.position.x = 1.5;
-            
-            const charGun = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 2), new THREE.MeshLambertMaterial({ color: 0x111 }));
-            charGun.position.set(0, -1.5, -1); armR.children[0].add(charGun); 
+            const bodyGeo = new THREE.BoxGeometry(3, 4, 2);
+            const bodyMat = new THREE.MeshBasicMaterial({visible: false});
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 2.5; body.name = "chest";
+            group.add(body);
 
-            const legL = createPart(new THREE.BoxGeometry(1, 3, 1), pantsMat, "legL", -1.5, 3); legL.position.x = -0.5;
-            const legR = createPart(new THREE.BoxGeometry(1, 3, 1), pantsMat, "legR", -1.5, 3); legR.position.x = 0.5;
+            // تحميل المجسم 3D
+            const loader = new GLTFLoader();
+            loader.load('player.glb', function (gltf) {
+                const model = gltf.scene;
+                
+                // التوسيط التلقائي
+                const box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                model.position.sub(center); 
+                
+                // التكبير أو التصغير التلقائي ليصبح طول الشخصية حوالي 6 وحدات
+                const scaleFactor = 6 / Math.max(size.x, size.y, size.z);
+                
+                const container = new THREE.Group();
+                container.add(model);
+                container.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                container.position.y = 3; 
+                container.rotation.y = Math.PI; 
+                
+                group.add(container);
+            }, undefined, function (error) {
+                console.log('يرجى وضع ملف player.glb لكي تظهر الشخصيات');
+            });
 
-            group.add(createNameSprite(profile.name)); return group;
+            return group;
         }
 
         function applyProfileToMesh(group, profile) {
             if(!group) return;
-            group.getObjectByName("chest").material.color.set(profile.shirt);
-            group.getObjectByName("belly").material.color.set(profile.shirt);
-            group.getObjectByName("legL").material.color.set(profile.pants);
-            group.getObjectByName("legR").material.color.set(profile.pants);
-            group.getObjectByName("hair").material.color.set(profile.hair);
             const oldTag = group.getObjectByName("nameTag");
-            if(oldTag) group.remove(oldTag); group.add(createNameSprite(profile.name));
+            if(oldTag) group.remove(oldTag); 
+            const newTag = createNameSprite(profile.name);
+            newTag.position.y = 7.5;
+            group.add(newTag);
         }
 
         function startNextRound() {
@@ -712,7 +715,7 @@
             aliveA = 0; aliveB = 0;
             if(gameMode === 'bot') {
                 aliveA = 1; aliveB = 1; 
-                update(ref(db, 'rooms/' + currentRoomId + '/players/bot'), { team: 'B', hp: MAX_HP, profile: {name: 'روبوت', shirt: '#ff0000', pants: '#111', hair: '#555'}, pos: {x:50, y:0, z:50}, rot: 0, isMoving: false });
+                update(ref(db, 'rooms/' + currentRoomId + '/players/bot'), { team: 'B', hp: MAX_HP, profile: {name: 'روبوت'}, pos: {x:50, y:0, z:50}, rot: 0, isMoving: false });
             } else {
                 if(myTeam === 'A') aliveA++; else aliveB++;
                 for(let id in playersData) { if(playersData[id].team === 'A') aliveA++; else aliveB++; }
@@ -1007,16 +1010,12 @@
                     playersData[id].mesh.traverse(c => { if(c === hitMesh) hitBelongsToThis = true; });
                     if(hitBelongsToThis) {
                         hitPlayerId = id;
-                        const origColor = hitMesh.material.color.getHex();
-                        hitMesh.material.color.setHex(0xff0000);
-                        
+                        // مؤثر ضرب بسيط
+                        setTimeout(() => { showFloatingDamage(dmgAmount, endPos); }, 50);
                         if(window.sfx) {
                             if(isHeadshot) window.sfx.playHeadshot();
                             else window.sfx.playHit();
                         }
-
-                        setTimeout(() => { if(hitMesh.material) hitMesh.material.color.setHex(origColor); }, 200);
-                        showFloatingDamage(dmgAmount, endPos);
                         break;
                     }
                 }
@@ -1198,11 +1197,7 @@
 
         function animateCharacter(mesh, isMoving, time) {
             if(!mesh) return;
-            const swing = isMoving ? Math.sin(time * 0.015) * 0.6 : 0;
-            if(mesh.getObjectByName("armL_pivot")) mesh.getObjectByName("armL_pivot").rotation.x = -Math.PI/2.5 + swing*0.2;
-            if(mesh.getObjectByName("armR_pivot")) mesh.getObjectByName("armR_pivot").rotation.x = -Math.PI/2.5 - swing*0.2;
-            if(mesh.getObjectByName("legL_pivot")) mesh.getObjectByName("legL_pivot").rotation.x = -swing;
-            if(mesh.getObjectByName("legR_pivot")) mesh.getObjectByName("legR_pivot").rotation.x = swing;
+            // يمكن الاستغناء عن تحريك الأرجل في حال كانت الشخصية صلبة
             const tag = mesh.getObjectByName("nameTag");
             if (tag) { tag.visible = inLobby; tag.quaternion.copy(camera.quaternion); }
         }
