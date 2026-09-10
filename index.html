@@ -9,9 +9,7 @@
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-title" content="Pro FPS 3D">
     
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111' rx='20'/%3E%3Ccircle cx='50' cy='50' r='35' stroke='%23ffaa00' stroke-width='5' fill='none'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ff0000'/%3E%3Cline x1='50' y1='5' x2='50' y2='25' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='50' y1='95' x2='50' y2='75' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='5' y1='50' x2='25' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='95' y1='50' x2='75' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
-
-    <title>Pro FPS - Character Fixes</title>
+    <title>Pro FPS - Spectator & Tactical</title>
     <style>
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; -webkit-user-select: none;}
@@ -70,7 +68,7 @@
         #heal-progress-fill { width: 0%; height: 100%; background: #00ff00; }
         #heal-progress-text { position: absolute; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; color: white; font-size: min(12px, 2vh); font-weight: bold; }
 
-        #msg-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; font-size: min(30px, 6vh); z-index: 20; color: #fff; pointer-events: auto; text-align: center;}
+        #msg-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; font-size: min(30px, 6vh); z-index: 20; color: #fff; pointer-events: none; text-align: center;}
         
         #left-touch-zone { position: absolute; top: 0; left: 0; width: 50%; height: 100%; z-index: 1; pointer-events: auto; }
         #right-touch-zone { position: absolute; top: 0; right: 0; width: 50%; height: 100%; z-index: 1; pointer-events: auto; }
@@ -112,7 +110,7 @@
 
     <div id="start-screen">
         <h1 style="color: #00aaff; text-shadow: 0 0 15px #00aaff; margin-bottom: 5px;">PRO FPS</h1>
-        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">إصلاح الأسلحة والتصويب 🎯</p>
+        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">التحديث التكتيكي 🎯</p>
         <button class="btn-start-fs" id="btn-fs">دخول اللعبة</button>
     </div>
 
@@ -173,7 +171,7 @@
         
         <div id="hp-container">
             <div id="hp-fill"></div>
-            <div id="hp-text">200 / 200</div>
+            <div id="hp-text" id="hp-text-display">200 / 200</div>
         </div>
         
         <div id="heal-progress-container">
@@ -242,7 +240,7 @@
         import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-        // 🟢 إعدادات Firebase 🟢
+        // 🟢 إعدادات Firebase الخاصة بك 🟢
         const firebaseConfig = {
             apiKey: "AIzaSyCu-ZLiqfgvZ5Ew8kSn7Swh1Xflnh0QsH0",
             authDomain: "shop-clothes-224a3.firebaseapp.com",
@@ -257,17 +255,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // خرائط تكتيكية حربية لبيئة التصويب FPS
         const mapThemes = [
-            { type: 'forest', name: "الغابة الخضراء", bg: 0x87CEEB, floor: 0x2d5a27, rock: 0x696969, trunk: 0x5c4033, leaf: 0x228b22, border: 0x3b5e2b },
-            { type: 'desert', name: "صحراء الأطلال", bg: 0x87CEEB, floor: 0xeedcb3, ruin: 0xd2b48c, cactus: 0x2e8b57, border: 0xcd853f },
-            { type: 'snow', name: "المنطقة الجليدية", bg: 0xaaccff, floor: 0xeeeeff, ice: 0xaaddff, pine: 0x2f4f4f, border: 0x8899aa },
-            { type: 'volcano', name: "جحيم الحمم", bg: 0x220000, floor: 0x1a0505, rock: 0x111111, pillar: 0x330000, border: 0xff3300 },
-            { type: 'sakura', name: "حديقة الساكورا", bg: 0xffe4e1, floor: 0x4caf50, rock: 0x9e9e9e, trunk: 0x5d4037, leaf: 0xffb7c5, border: 0x81c784 },
-            { type: 'toxic', name: "المستنقع السام", bg: 0x1a2e1a, floor: 0x0f1a0f, shroomStem: 0xeeeeee, shroomTop: 0xaa00ff, deadTree: 0x2a2a2a, border: 0x39ff14 },
-            { type: 'candy', name: "أرض الحلوى", bg: 0xffc0cb, floor: 0xffe4b5, choc: 0x8b4513, lolliStick: 0xffffff, lolliTop: 0xff1493, border: 0xff69b4 },
-            { type: 'mars', name: "سطح المريخ", bg: 0x8b0000, floor: 0xa0522d, rock: 0x8b4513, artifact: 0x2f4f4f, border: 0xcd5c5c },
-            { type: 'ocean', name: "أعماق المحيط", bg: 0x00008b, floor: 0xdeb887, coral: 0xff7f50, kelp: 0x2e8b57, border: 0x4682b4 },
-            { type: 'autumn', name: "غابة الخريف", bg: 0xffa500, floor: 0x8b4513, rock: 0x696969, trunk: 0x4a3020, leaf: 0xd2691e, border: 0xa0522d }
+            { type: 'dust', name: "الصحراء التكتيكية", bg: 0xd2b48c, floor: 0xc2a47c, crate: 0x8b4513, wall: 0xd2b48c, border: 0xa0522d },
+            { type: 'warehouse', name: "المستودع المهجور", bg: 0x222222, floor: 0x444444, crate: 0x888888, wall: 0x333333, border: 0x111111 },
+            { type: 'snowbase', name: "القاعدة الثلجية", bg: 0xddeeff, floor: 0xffffff, crate: 0xaaaaaa, wall: 0x8899aa, border: 0x556677 },
+            { type: 'neon', name: "المدينة الليلية", bg: 0x050510, floor: 0x1a1a2e, crate: 0x16213e, wall: 0x0f3460, border: 0xe94560 }
         ];
 
         let myId, currentRoomId, isHost = true;
@@ -452,10 +445,12 @@
                     }
                 }
                 
+                // إخفاء المجسمات للاعبين الذين ماتوا (لأن الجولة تستمر)
                 for(let id in playersData) {
-                    if(id !== 'bot' && !data[id] && id !== myId) {
-                        scene.remove(playersData[id].mesh);
-                        delete playersData[id];
+                    if(id !== 'bot' && (!data[id] || data[id].hp <= 0) && id !== myId) {
+                        if(playersData[id].mesh) playersData[id].mesh.visible = false;
+                    } else if (id !== myId && data[id] && data[id].hp > 0 && playersData[id].mesh) {
+                        playersData[id].mesh.visible = true;
                     }
                 }
                 updateLobbyUI();
@@ -568,16 +563,8 @@
             const grass = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshBasicMaterial({color: 0x228B22}));
             grass.rotation.x = -Math.PI/2; lobbyEnv.add(grass);
             
-            const cloudGeo = new THREE.SphereGeometry(4, 7, 7); const cloudMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            for(let i=0; i<15; i++) {
-                const cloud = new THREE.Mesh(cloudGeo, cloudMat);
-                cloud.position.set((Math.random() - 0.5) * 100, 25 + Math.random() * 10, -30 - Math.random() * 50);
-                cloud.scale.set(1 + Math.random()*2, 0.5 + Math.random(), 1 + Math.random()*2); lobbyEnv.add(cloud);
-            }
-            scene.add(lobbyEnv);
-            
             // ---------------------------------------------------------
-            // عرض الكاميرا (أنت): يرى السلاح فقط (تم إزالة player.glb من الكاميرا)
+            // عرض الكاميرا (أنت): يرى السلاح فقط بوضوح في منظور الشخص الأول
             // ---------------------------------------------------------
             gunMesh = new THREE.Group();
             camera.add(gunMesh);
@@ -590,25 +577,20 @@
 
             const loader = new GLTFLoader();
             
-            // تحميل AK47 للكاميرا الخاصة بك فقط!
             loader.load('AK47.compressed.glb?v=3', function (gltf) {
                 const ak47 = gltf.scene;
-                
                 const box = new THREE.Box3().setFromObject(ak47);
                 const center = box.getCenter(new THREE.Vector3());
                 const size = box.getSize(new THREE.Vector3());
-                
                 ak47.position.sub(center); 
                 
                 const scaleFactor = 1.5 / Math.max(size.x, size.y, size.z);
-                
                 const weaponContainer = new THREE.Group();
                 weaponContainer.add(ak47);
                 weaponContainer.scale.set(scaleFactor, scaleFactor, scaleFactor);
                 
                 weaponContainer.position.set(0.4, -0.4, -1);
                 weaponContainer.rotation.y = Math.PI / 2; 
-                
                 gunMesh.add(weaponContainer);
             }, undefined, function (error) {
                 console.error('خطأ في تحميل السلاح:', error);
@@ -641,9 +623,7 @@
             sprite.scale.set(6, 1.5, 1); sprite.position.y = -0.5; sprite.name = "nameTag"; return sprite;
         }
 
-        // ---------------------------------------------------------
-        // إنشاء شخصيات الأصدقاء/الخصوم (ميجا مان + السلاح بيده)
-        // ---------------------------------------------------------
+        // إنشاء شخصيات الأصدقاء/الخصوم
         function create3DCharacter(profile) {
             const group = new THREE.Group();
             
@@ -653,10 +633,8 @@
 
             const loader = new GLTFLoader();
             
-            // تحميل شخصية الخصم (player.glb)
             loader.load('player.glb', function (gltf) {
                 const model = gltf.scene;
-                
                 const box = new THREE.Box3().setFromObject(model);
                 const center = box.getCenter(new THREE.Vector3());
                 const size = box.getSize(new THREE.Vector3());
@@ -672,7 +650,6 @@
                 
                 group.add(container);
 
-                // تحميل السلاح وإعطائه للشخصية!
                 loader.load('AK47.compressed.glb?v=3', function (akGltf) {
                     const ak47 = akGltf.scene;
                     const akBox = new THREE.Box3().setFromObject(ak47);
@@ -683,7 +660,7 @@
                     const akScaleFactor = 2 / Math.max(akSize.x, akSize.y, akSize.z);
                     ak47.scale.set(akScaleFactor, akScaleFactor, akScaleFactor);
                     
-                    // وضع السلاح في يد الشخصية (تقريبياً)
+                    // وضع السلاح في يد الشخصية للآخرين
                     ak47.position.set(0.5, 3.5, 1.5); 
                     ak47.rotation.y = Math.PI / 2; 
                     
@@ -706,26 +683,7 @@
             group.add(newTag);
         }
 
-        function startNextRound() {
-            if(!isHost) return;
-            update(myGlobalRef, { status: 'in-game' });
-            
-            const themeIdx = Math.floor(Math.random() * mapThemes.length);
-            const mapArr = generateAdvancedMap(); buildMap(mapArr, themeIdx);
-            
-            aliveA = 0; aliveB = 0;
-            if(gameMode === 'bot') {
-                aliveA = 1; aliveB = 1; 
-                update(ref(db, 'rooms/' + currentRoomId + '/players/bot'), { team: 'B', hp: MAX_HP, profile: {name: 'روبوت'}, pos: {x:50, y:0, z:50}, rot: 0, isMoving: false });
-            } else {
-                if(myTeam === 'A') aliveA++; else aliveB++;
-                for(let id in playersData) { if(playersData[id].team === 'A') aliveA++; else aliveB++; }
-            }
-
-            switchToGameScene(0, themeIdx); 
-            set(stateRef, { type: 'START_ROUND', mode: gameMode, map: mapArr, round: currentRound, scoreA: teamScoreA, scoreB: teamScoreB, themeIdx: themeIdx });
-        }
-
+        // الخرائط التكتيكية الحربية بدلاً من الفطر والحلوى
         function generateAdvancedMap() {
             const arr = [];
             for (let x = -7; x <= 7; x++) {
@@ -748,7 +706,7 @@
             const solidFloor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshLambertMaterial({ color: theme.floor }));
             solidFloor.rotation.x = -Math.PI / 2; currentMapObjects.add(solidFloor);
 
-            const bMat = new THREE.MeshLambertMaterial({ color: theme.border || theme.wall || theme.trunk || 0x222222 });
+            const bMat = new THREE.MeshLambertMaterial({ color: theme.border || theme.wall || theme.crate || 0x222222 });
             const addB = (x, z, r, w, d) => {
                 const geo = new THREE.BoxGeometry(w, 40, d); const m = new THREE.Mesh(geo, bMat);
                 m.position.set(x, 20, z); m.rotation.y = r; currentMapObjects.add(m); walls.push(m);
@@ -757,94 +715,40 @@
 
             serverWalls.forEach(obj => {
                 let mesh;
-                if (theme.type === 'forest' || theme.type === 'sakura' || theme.type === 'autumn') {
-                    if (obj.objType === 0) { 
-                        mesh = new THREE.Group();
-                        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 12, 8), new THREE.MeshLambertMaterial({ color: theme.trunk })); trunk.position.y = 6;
-                        const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(7, 1), new THREE.MeshLambertMaterial({ color: theme.leaf })); leaves.position.y = 15;
-                        mesh.add(trunk); mesh.add(leaves); mesh.position.set(obj.x, 0, obj.z);
-                    } else { 
-                        mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(5 + Math.random()*3, 0), new THREE.MeshLambertMaterial({ color: theme.rock }));
-                        mesh.position.set(obj.x, 5, obj.z); mesh.scale.set(1, Math.random() + 0.5, 1);
-                    }
-                }
-                else if (theme.type === 'desert') {
-                    if (obj.objType === 0) { 
-                        mesh = new THREE.Mesh(new THREE.BoxGeometry(10, obj.h, 10), new THREE.MeshLambertMaterial({ color: theme.ruin })); mesh.position.set(obj.x, obj.h/2, obj.z);
-                    } else { 
-                        mesh = new THREE.Group();
-                        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 10, 8), new THREE.MeshLambertMaterial({ color: theme.cactus })); trunk.position.y = 5;
-                        mesh.add(trunk); mesh.position.set(obj.x, 0, obj.z);
-                    }
-                }
-                else if (theme.type === 'snow') {
-                    if (obj.objType === 0) { 
-                        mesh = new THREE.Group();
-                        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 5, 8), new THREE.MeshLambertMaterial({ color: 0x333333 })); trunk.position.y = 2.5;
-                        const leaves = new THREE.Mesh(new THREE.ConeGeometry(6, 15, 8), new THREE.MeshLambertMaterial({ color: theme.pine })); leaves.position.y = 10;
-                        mesh.add(trunk); mesh.add(leaves); mesh.position.set(obj.x, 0, obj.z);
-                    } else { 
-                        mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(6, 0), new THREE.MeshLambertMaterial({ color: theme.ice }));
-                        mesh.position.set(obj.x, 6, obj.z); mesh.scale.set(1, 1.5 + Math.random(), 1);
-                    }
-                }
-                else if (theme.type === 'volcano') {
-                    if (obj.objType === 0) { 
-                        mesh = new THREE.Mesh(new THREE.CylinderGeometry(4, 5, obj.h, 6), new THREE.MeshLambertMaterial({ color: theme.pillar }));
-                        mesh.position.set(obj.x, obj.h/2, obj.z);
-                    } else { 
-                        mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(6, 0), new THREE.MeshLambertMaterial({ color: theme.rock }));
-                        mesh.position.set(obj.x, 6, obj.z);
-                    }
-                }
-                else if (theme.type === 'toxic') {
-                    if (obj.objType === 0) { 
-                        mesh = new THREE.Group();
-                        const stem = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 10, 8), new THREE.MeshLambertMaterial({ color: theme.shroomStem })); stem.position.y = 5;
-                        const top = new THREE.Mesh(new THREE.SphereGeometry(6, 8, 8, 0, Math.PI*2, 0, Math.PI/2), new THREE.MeshLambertMaterial({ color: theme.shroomTop })); top.position.y = 10;
-                        mesh.add(stem); mesh.add(top); mesh.position.set(obj.x, 0, obj.z);
-                    } else { 
-                        mesh = new THREE.Mesh(new THREE.CylinderGeometry(2, 3, obj.h, 5), new THREE.MeshLambertMaterial({ color: theme.deadTree }));
-                        mesh.position.set(obj.x, obj.h/2, obj.z);
-                    }
-                }
-                else if (theme.type === 'candy') {
-                    if (obj.objType === 0) { 
-                        mesh = new THREE.Group();
-                        const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 15, 8), new THREE.MeshLambertMaterial({ color: theme.lolliStick })); stick.position.y = 7.5;
-                        const top = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 16), new THREE.MeshLambertMaterial({ color: theme.lolliTop })); top.position.y = 15; top.scale.z = 0.5;
-                        mesh.add(stick); mesh.add(top); mesh.position.set(obj.x, 0, obj.z);
-                    } else { 
-                        mesh = new THREE.Mesh(new THREE.BoxGeometry(8, obj.h, 8), new THREE.MeshLambertMaterial({ color: theme.choc }));
-                        mesh.position.set(obj.x, obj.h/2, obj.z);
-                    }
-                }
-                else if (theme.type === 'mars') {
-                    if (obj.objType === 0) { 
-                        mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(6, 1), new THREE.MeshLambertMaterial({ color: theme.rock }));
-                        mesh.position.set(obj.x, 6, obj.z); mesh.scale.set(1, 1.5, 1);
-                    } else { 
-                        mesh = new THREE.Mesh(new THREE.OctahedronGeometry(5, 0), new THREE.MeshLambertMaterial({ color: theme.artifact }));
-                        mesh.position.set(obj.x, 10, obj.z); mesh.scale.set(1, 2, 1);
-                    }
-                }
-                else if (theme.type === 'ocean') {
-                    if (obj.objType === 0) { 
-                        mesh = new THREE.Group();
-                        for(let i=0; i<3; i++) {
-                            const branch = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 10 + Math.random()*5, 5), new THREE.MeshLambertMaterial({ color: theme.coral }));
-                            branch.position.set((Math.random()-0.5)*4, 5, (Math.random()-0.5)*4); branch.rotation.set((Math.random()-0.5)*0.5, 0, (Math.random()-0.5)*0.5);
-                            mesh.add(branch);
-                        } mesh.position.set(obj.x, 0, obj.z);
-                    } else { 
-                        mesh = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, obj.h, 5), new THREE.MeshLambertMaterial({ color: theme.kelp }));
-                        mesh.position.set(obj.x, obj.h/2, obj.z);
-                    }
+                // توليد مكعبات (صناديق/حاويات) وبراميل تكتيكية تناسب ألعاب الـ FPS
+                if (obj.objType === 0) { 
+                    mesh = new THREE.Mesh(new THREE.BoxGeometry(10, obj.h, 10), new THREE.MeshLambertMaterial({ color: theme.crate })); 
+                    mesh.position.set(obj.x, obj.h/2, obj.z);
+                } else { 
+                    mesh = new THREE.Group();
+                    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 10, 8), new THREE.MeshLambertMaterial({ color: theme.wall })); 
+                    trunk.position.y = 5;
+                    mesh.add(trunk); mesh.position.set(obj.x, 0, obj.z);
                 }
 
                 if(mesh) { currentMapObjects.add(mesh); walls.push(mesh); }
             });
             scene.add(currentMapObjects);
+        }
+
+        function startNextRound() {
+            if(!isHost) return;
+            update(myGlobalRef, { status: 'in-game' });
+            
+            const themeIdx = Math.floor(Math.random() * mapThemes.length);
+            const mapArr = generateAdvancedMap(); buildMap(mapArr, themeIdx);
+            
+            aliveA = 0; aliveB = 0;
+            if(gameMode === 'bot') {
+                aliveA = 1; aliveB = 1; 
+                update(ref(db, 'rooms/' + currentRoomId + '/players/bot'), { team: 'B', hp: MAX_HP, profile: {name: 'روبوت'}, pos: {x:50, y:0, z:50}, rot: 0, isMoving: false });
+            } else {
+                if(myTeam === 'A') aliveA++; else aliveB++;
+                for(let id in playersData) { if(playersData[id].team === 'A') aliveA++; else aliveB++; }
+            }
+
+            switchToGameScene(0, themeIdx); 
+            set(stateRef, { type: 'START_ROUND', mode: gameMode, map: mapArr, round: currentRound, scoreA: teamScoreA, scoreB: teamScoreB, themeIdx: themeIdx });
         }
 
         function switchToGameScene(spawnIndex, themeIdx) {
@@ -883,6 +787,7 @@
                 let winnerTeam = aliveA > 0 ? 'A' : 'B';
                 if (winnerTeam === 'A') teamScoreA++; else teamScoreB++;
                 let matchOver = (teamScoreA >= 4 || teamScoreB >= 4);
+                // جولة مستمرة بشكل عادي حتى تنتهي
                 set(stateRef, { type: 'ROUND_OVER', winnerTeam: winnerTeam, scoreA: teamScoreA, scoreB: teamScoreB, matchOver: matchOver });
             }
         }
@@ -998,32 +903,20 @@
                 endPos.copy(intersects[0].point);
                 let hitMesh = intersects[0].object;
 
-                // --- نظام احتساب الدمج الجديد المستقل عن أسماء القطع ---
                 for(let id in playersData) {
                     if(!playersData[id].mesh) continue;
                     let hitBelongsToThis = false;
-                    
-                    // هل القطعة التي لمستها الرصاصة تابعة لهذا اللاعب؟
                     playersData[id].mesh.traverse(c => { 
                         if(c === hitMesh) hitBelongsToThis = true; 
                     });
                     
                     if(hitBelongsToThis) {
                         hitPlayerId = id;
-                        
-                        // حساب الارتفاع لمعرفة الهيدشوت
-                        // أرجل الشخصية تكون عند 0، رأسها تقريباً عند 5 أو 6
                         let hitHeight = endPos.y - playersData[id].mesh.position.y;
                         
-                        if (hitHeight > 4.5) { 
-                            dmgAmount = 90; 
-                            isHeadshot = true; 
-                        } else { 
-                            dmgAmount = 15; 
-                            isHeadshot = false; 
-                        }
+                        if (hitHeight > 4.5) { dmgAmount = 90; isHeadshot = true; } 
+                        else { dmgAmount = 15; isHeadshot = false; }
 
-                        // تلوين الجسم بالأحمر عند الإصابة كدليل بصري
                         const origColor = hitMesh.material?.color?.getHex();
                         if (hitMesh.material && hitMesh.material.color) hitMesh.material.color.setHex(0xff0000);
                         
@@ -1086,9 +979,9 @@
         }
 
         function handleDeath() {
-            isPlaying = false; isHealing = false; document.getElementById('heal-progress-container').style.display = 'none';
-            const msg = document.getElementById('msg-overlay');
-            msg.innerHTML = `💀 متت! بانتظار نهاية الجولة... 💀`; msg.style.display = 'flex';
+            // اللاعب مات، نخفي سلاحه ونفعل وضع المراقبة (Spectator)
+            isHealing = false; document.getElementById('heal-progress-container').style.display = 'none';
+            gunMesh.visible = false;
         }
 
         function setupControls() {
@@ -1228,7 +1121,7 @@
             const time = performance.now(); const delta = Math.min((time - prevTime) / 1000, 0.1); prevTime = time;
 
             if (isPlaying && myHp > 0) {
-                
+                // اللاعب حي ويلعب
                 if (isHealing) {
                     if (moveX !== 0 || moveZ !== 0) {
                         isHealing = false; document.getElementById('heal-progress-container').style.display = 'none'; showFloatingDamage('إلغاء', camera.position);
@@ -1278,7 +1171,7 @@
                     
                     let checkTargets = [];
                     if (gameMode === 'bot' && playersData['bot'].hp > 0 && playersData['bot'].mesh.visible) {
-                        checkTargets.push(playersData['bot'].mesh.position.clone().setY(5)); // توجيه الإيم لصدر/رأس الهدف
+                        checkTargets.push(playersData['bot'].mesh.position.clone().setY(5)); 
                     } else if (gameMode !== 'bot') {
                         for(let id in playersData) {
                             if(id === 'bot' || id === myId) continue;
@@ -1317,27 +1210,69 @@
                     lastNetworkUpdate = time;
                 }
 
-                if (gameMode === 'bot' && isHost && playersData['bot'].hp > 0) {
-                    const bot = playersData['bot']; const botPos = bot.mesh.position; const headPos = botPos.clone().setY(6);
-                    const distToPlayer = headPos.distanceTo(camera.position); const dirToPlayer = camera.position.clone().sub(headPos).normalize();
+            } else if (isPlaying && myHp <= 0) {
+                // نظام المراقبة (Spectator Mode) بعد الموت
+                let spectateTarget = null;
+                if (gameMode === 'group') {
+                    for(let id in playersData) {
+                        if (playersData[id].team === myTeam && playersData[id].hp > 0 && playersData[id].mesh) {
+                            spectateTarget = playersData[id];
+                            break;
+                        }
+                    }
+                }
+                
+                if (spectateTarget) {
+                    // الكاميرا خلف الصديق وتنظر إليه
+                    const targetPos = spectateTarget.mesh.position.clone().setY(8);
+                    const offset = new THREE.Vector3(0, 5, 10).applyAxisAngle(new THREE.Vector3(0,1,0), spectateTarget.mesh.rotation.y);
+                    camera.position.lerp(targetPos.clone().add(offset), 0.1);
+                    camera.lookAt(targetPos);
                     
-                    if (new THREE.Raycaster(headPos, dirToPlayer, 0, distToPlayer).intersectObjects(walls, true).length === 0 && distToPlayer < 70) {
-                        bot.mesh.lookAt(camera.position.x, botPos.y, camera.position.z);
+                    document.getElementById('hp-text').innerText = `تشاهد: ${spectateTarget.profile.name} (${Math.floor(spectateTarget.hp)})`;
+                    document.getElementById('hp-fill').style.width = (spectateTarget.hp / MAX_HP) * 100 + '%';
+                }
+            } else if (inLobby) {
+                camera.position.set(0, 5, -3); camera.lookAt(0, 4, -15);
+                if(myLobbyMesh) animateCharacter(myLobbyMesh, false, time);
+            }
+
+            // تعديل البوت ليكون أقل ليونة وأكثر واقعية (تم تقليل السرعة وزيادة وقت الإطلاق)
+            if (isPlaying && gameMode === 'bot' && isHost && playersData['bot'].hp > 0) {
+                const bot = playersData['bot']; const botPos = bot.mesh.position; const headPos = botPos.clone().setY(6);
+                
+                // البحث عن أقرب عدو حي
+                let targetPos = null;
+                let minDist = Infinity;
+                
+                if(myHp > 0) { targetPos = camera.position; minDist = headPos.distanceTo(camera.position); }
+                for(let id in playersData) {
+                    if (id !== 'bot' && id !== myId && playersData[id].team === 'A' && playersData[id].hp > 0 && playersData[id].mesh) {
+                        let d = headPos.distanceTo(playersData[id].mesh.position);
+                        if(d < minDist) { minDist = d; targetPos = playersData[id].mesh.position; }
+                    }
+                }
+
+                if (targetPos && minDist < 70) {
+                    const dirToPlayer = targetPos.clone().sub(headPos).normalize();
+                    if (new THREE.Raycaster(headPos, dirToPlayer, 0, minDist).intersectObjects(walls, true).length === 0) {
+                        bot.mesh.lookAt(targetPos.x, botPos.y, targetPos.z);
                         
                         if(!bot.strafeDir) bot.strafeDir = 1;
-                        if(Math.random() < 0.03) bot.strafeDir *= -1; 
+                        if(Math.random() < 0.02) bot.strafeDir *= -1; 
                         
                         const fwdV = dirToPlayer.clone().setY(0).normalize();
                         const rightV = new THREE.Vector3(-fwdV.z, 0, fwdV.x).multiplyScalar(bot.strafeDir * 0.8);
                         let moveDir = new THREE.Vector3();
                         
-                        if (distToPlayer > 20) moveDir.add(fwdV); 
-                        else if (distToPlayer < 10) moveDir.sub(fwdV); 
+                        if (minDist > 20) moveDir.add(fwdV); 
+                        else if (minDist < 10) moveDir.sub(fwdV); 
                         moveDir.add(rightV).normalize(); 
                         
                         let isBotMoving = false;
                         if (new THREE.Raycaster(headPos, moveDir, 0, 3).intersectObjects(walls, true).length === 0) {
-                            botPos.add(moveDir.multiplyScalar(14 * delta)); 
+                            // تقليل سرعة البوت ليكون أقل ليونة (10 بدلا من 14)
+                            botPos.add(moveDir.multiplyScalar(10 * delta)); 
                             isBotMoving = true;
                         }
                         
@@ -1346,20 +1281,21 @@
                             bot.lastMoveUpdate = time;
                         }
 
-                        if (!bot.lastShoot || time - bot.lastShoot > 600) { 
+                        // زيادة وقت التأخير قبل الإطلاق ليصبح أسهل للاعب (1500 ملي ثانية بدلاً من 600)
+                        if (!bot.lastShoot || time - bot.lastShoot > 1500) { 
                             bot.lastShoot = time; 
-                            push(actionsRef, { type: 'BULLET_FIRED', start: {x:botPos.x, y:4, z:botPos.z}, end: {x:camera.position.x, y:camera.position.y, z:camera.position.z}, sender: 'bot' });
+                            push(actionsRef, { type: 'BULLET_FIRED', start: {x:botPos.x, y:4, z:botPos.z}, end: {x:targetPos.x, y:targetPos.y, z:targetPos.z}, sender: 'bot' });
                             
-                            push(actionsRef, { type: 'HIT', victim: myId, damage: 15, headshot: false, sender: 'bot' });
+                            // إيجاد الضحية التي يطلق عليها
+                            let victimId = null;
+                            if(targetPos === camera.position) victimId = myId;
+                            else {
+                                for(let id in playersData) { if(playersData[id].mesh && playersData[id].mesh.position === targetPos) victimId = id; }
+                            }
+                            if(victimId) push(actionsRef, { type: 'HIT', victim: victimId, damage: 15, headshot: false, sender: 'bot' });
                         }
                     }
                 }
-                
-                updateMinimap();
-
-            } else if (inLobby) {
-                camera.position.set(0, 5, -3); camera.lookAt(0, 4, -15);
-                if(myLobbyMesh) animateCharacter(myLobbyMesh, false, time);
             }
 
             for(let id in playersData) if (playersData[id].mesh && id !== 'bot') animateCharacter(playersData[id].mesh, false, time);
