@@ -7,11 +7,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-title" content="Pro FPS 3D">
+    <meta name="apple-mobile-web-app-title" content="Pro FPS">
     
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111' rx='20'/%3E%3Ccircle cx='50' cy='50' r='35' stroke='%23ffaa00' stroke-width='5' fill='none'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ff0000'/%3E%3Cline x1='50' y1='5' x2='50' y2='25' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='50' y1='95' x2='50' y2='75' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='5' y1='50' x2='25' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='95' y1='50' x2='75' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
 
-    <title>Pro FPS - 3D Weapon Update</title>
+    <title>Pro FPS - AK47 Fixed</title>
     <style>
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; -webkit-user-select: none;}
@@ -103,7 +103,6 @@
         @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; display: none; } }
     </style>
 
-    <!-- تم إضافة مسار GLTFLoader هنا -->
     <script type="importmap"> { 
         "imports": { 
             "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
@@ -241,7 +240,6 @@
         });
     </script>
 
-    <!-- تضمين مكتبات Firebase V10 Modular و GLTFLoader -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getDatabase, ref, set, update, push, onValue, onChildAdded, onDisconnect, off, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
@@ -591,35 +589,49 @@
             scene.add(lobbyEnv);
             
             // ---------------------------------------------------------
-            // إنشاء مجموعة تحتوي على السلاح (الـ AK47)
+            // إعداد مجموعة السلاح والكاميرا (تعديل جذري)
             // ---------------------------------------------------------
             gunMesh = new THREE.Group();
-            
-            // ضبط مكان السلاح ليكون يمين الشاشة كما في ألعاب الـ FPS
-            gunMesh.position.set(0.3, -0.3, -1); 
             camera.add(gunMesh);
             gunMesh.visible = false;
 
-            // تحديد نقطة خروج الرصاصة لتكون من فوهة السلاح
+            // تحديد نقطة خروج الرصاصة (Muzzle) لتكون متناسقة مع مكان السلاح الجديد
             const muzzle = new THREE.Object3D(); 
-            muzzle.position.set(0, 0.1, -1.5); 
+            muzzle.position.set(0.4, -0.2, -2.0); // دفعناها للأمام لتكون مع الفوهة
             muzzle.name = "muzzle";
             gunMesh.add(muzzle);
 
-            // تحميل الـ AK47.glb باستخدام GLTFLoader
+            // تحميل السلاح الثلاثي الأبعاد بالخوارزمية الذكية (التوسيط والتصغير التلقائي)
             const loader = new GLTFLoader();
-            loader.load('AK47.compressed.glb', function (gltf) {
+            loader.load('AK47.compressed.glb?v=2', function (gltf) {
                 const ak47 = gltf.scene;
                 
-                // قد تحتاج لتعديل هذه القيم (Scale) إذا كان السلاح يظهر كبيراً جداً أو صغيراً جداً
-                ak47.scale.set(0.1, 0.1, 0.1); 
+                // 1. حساب الحجم الفعلي للسلاح وتوسيطه (لحل مشكلة إطلاق النار من العدم)
+                const box = new THREE.Box3().setFromObject(ak47);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
                 
-                // تدوير السلاح ليكون موجهاً للأمام
-                ak47.rotation.y = Math.PI; 
+                // سحب السلاح ليكون مركزه نقطة الصفر
+                ak47.position.sub(center); 
                 
-                gunMesh.add(ak47);
+                // 2. تصغير السلاح تلقائياً ليناسب الشاشة (طوله سيكون 1.5 وحدة)
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scaleFactor = 1.5 / maxDim;
+                
+                // حاوية للتحكم بالسلاح بعد توسيطه
+                const weaponContainer = new THREE.Group();
+                weaponContainer.add(ak47);
+                weaponContainer.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                
+                // 3. ضبط مكان السلاح (يمين، أسفل، أمام الكاميرا)
+                weaponContainer.position.set(0.4, -0.4, -1);
+                
+                // 4. ضبط دوران السلاح (إذا كان السلاح يعطيك جانبه، غير هذا الرقم إلى Math.PI/2 أو -Math.PI/2)
+                weaponContainer.rotation.y = Math.PI / 2; // أغلب الأسلحة المجانية تحتاج هذا الدوران
+                
+                gunMesh.add(weaponContainer);
             }, undefined, function (error) {
-                console.error('يوجد خطأ في تحميل السلاح، تأكد من وضع ملف AK47.glb بجانب ملف HTML:', error);
+                console.error('خطأ في تحميل السلاح:', error);
             });
             // ---------------------------------------------------------
 
@@ -670,7 +682,6 @@
             const armL = createPart(new THREE.BoxGeometry(1, 3, 1), skinMat, "armL", -1.5, 5.5); armL.position.x = -1.5;
             const armR = createPart(new THREE.BoxGeometry(1, 3, 1), skinMat, "armR", -1.5, 5.5); armR.position.x = 1.5;
             
-            // إضافة السلاح البدائي للشخصيات الأخرى
             const charGun = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 2), new THREE.MeshLambertMaterial({ color: 0x111 }));
             charGun.position.set(0, -1.5, -1); armR.children[0].add(charGun); 
 
@@ -949,7 +960,6 @@
             if (isReloading || myAmmo === MAX_AMMO || myHp <= 0) return;
             isReloading = true; updateWeaponUI();
             if(window.sfx && window.sfx.playReload) window.sfx.playReload();
-            // تدوير بسيط لبيان إعادة التلقيم حتى لو كان 3D
             gunMesh.rotation.x = -Math.PI / 8; 
             setTimeout(() => {
                 myAmmo = MAX_AMMO; isReloading = false;
