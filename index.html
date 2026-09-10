@@ -11,7 +11,7 @@
     
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111' rx='20'/%3E%3Ccircle cx='50' cy='50' r='35' stroke='%23ffaa00' stroke-width='5' fill='none'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ff0000'/%3E%3Cline x1='50' y1='5' x2='50' y2='25' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='50' y1='95' x2='50' y2='75' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='5' y1='50' x2='25' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='95' y1='50' x2='75' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
 
-    <title>Pro FPS - Character Fixes</title>
+    <title>Pro FPS - Optimized Master</title>
     <style>
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; -webkit-user-select: none;}
@@ -155,44 +155,6 @@
         </div>
     </div>
 
-    <div id="game-ui">
-        <div id="msg-overlay"></div>
-        <div id="left-touch-zone"></div>
-        <div id="right-touch-zone"></div>
-        
-        <div id="joystick-pad"><div id="joystick-knob"></div></div>
-        <canvas id="minimap" width="120" height="120"></canvas>
-
-        <div id="top-status">
-            الجولة: <span id="round-num">1</span> | 
-            <span class="score-a">A: <span id="score-a-val">0</span></span> - 
-            <span class="score-b">B: <span id="score-b-val">0</span></span>
-        </div>
-        
-        <div id="hp-container">
-            <div id="hp-fill"></div>
-            <div id="hp-text">200 / 200</div>
-        </div>
-        
-        <div id="heal-progress-container">
-            <div id="heal-progress-fill"></div>
-            <div id="heal-progress-text">جاري العلاج...</div>
-        </div>
-
-        <div id="crosshair"></div>
-        
-        <div id="weapon-ui">
-            <div class="gun-icon">🔫</div>
-            <div id="weapon-ammo">30/30</div>
-        </div>
-
-        <div id="btn-heal" class="btn-game">💉<br><small>علاج</small></div>
-        <div id="btn-gloo" class="btn-game">🧊<br><small>3</small></div>
-        <div id="btn-shoot" class="btn-game">🔥<br>نار</div>
-        
-        <div id="kill-feed"></div>
-    </div>
-
     <script>
         window.sfx = {};
         window.initAudio = function() {
@@ -301,7 +263,14 @@
         let teamScoreA = 0, teamScoreB = 0, currentRound = 1;
         let aliveA = 0, aliveB = 0;
 
-        // --- دوال بناء الأشكال الهندسية الاحترافية (السلاح والشخصية) ---
+        function disposeObject(obj) {
+            if(obj.geometry) obj.geometry.dispose();
+            if(obj.material) {
+                if(Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+                else obj.material.dispose();
+            }
+        }
+
         function createProceduralWeapon() {
             const gunGroup = new THREE.Group();
             
@@ -310,7 +279,6 @@
             const accent = new THREE.MeshStandardMaterial({color: 0x00aaff, emissive: 0x003366}); 
             
             const body = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.3, 0.9), darkMetal);
-            
             const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.8, 12), lightMetal);
             barrel.rotation.x = Math.PI / 2;
             barrel.position.set(0, 0.05, -0.8);
@@ -355,7 +323,6 @@
             nameSprite.position.y = 8.0;
             group.add(nameSprite);
 
-            // نقوم بإنشاء خامات جديدة لكل شخصية لضمان عمل تأثير اللون الأحمر عند الإصابة بشكل مستقل
             const armorMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.7, metalness: 0.3 });
             const jointMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.9, metalness: 0.1 });
             const visorMat = new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x0088ff, emissiveIntensity: 1 });
@@ -363,34 +330,27 @@
 
             const model = new THREE.Group();
 
-            // الرأس
             const head = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), armorMat);
             head.position.y = 5.5;
             
-            // النظارة (Visor)
             const visor = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.35, 1.25), visorMat);
             visor.position.y = 5.5;
             visor.position.z = -0.05; 
 
-            // الجذع (Torso)
             const torso = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.2, 1.2), armorMat);
             torso.position.y = 3.6;
 
-            // تفاصيل الصدر
             const chestPlate = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.0, 1.3), jointMat);
             chestPlate.position.y = 4.0;
             
-            // الحوض
             const pelvis = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.6, 1.0), jointMat);
             pelvis.position.y = 2.2;
 
-            // الأكتاف
             const shoulderL = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), detailMat);
             shoulderL.position.set(1.2, 4.4, 0);
             const shoulderR = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), detailMat);
             shoulderR.position.set(-1.2, 4.4, 0);
 
-            // الأذرع
             const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.3, 1.8, 12), armorMat);
             armL.position.set(1.2, 3.2, 0);
             
@@ -398,7 +358,6 @@
             armR.position.set(-1.2, 3.2, -0.4);
             armR.rotation.x = -Math.PI / 4; 
 
-            // الأرجل
             const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.3, 2.2, 12), armorMat);
             legL.position.set(0.5, 1.1, 0);
             const legR = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.3, 2.2, 12), armorMat);
@@ -406,7 +365,6 @@
 
             model.add(head, visor, torso, chestPlate, pelvis, shoulderL, shoulderR, armL, armR, legL, legR);
 
-            // إضافة السلاح ليد الشخصية
             const weapon = createProceduralWeapon();
             weapon.scale.set(1.5, 1.5, 1.5);
             weapon.position.set(-1.2, 3.4, -1.2);
@@ -427,11 +385,23 @@
             group.add(newTag);
         }
 
-        // --- نهاية دوال البناء ---
-
         function initFirebaseNetwork() {
-            myId = 'player_' + Math.random().toString(36).substr(2, 6);
+            // 🟢 نظام التخزين المحلي (Local Storage) للتعرف على اللاعب 🟢
+            myId = localStorage.getItem('profps_id');
+            if (!myId) {
+                myId = 'player_' + Math.random().toString(36).substr(2, 8);
+                localStorage.setItem('profps_id', myId);
+            }
             
+            let savedName = localStorage.getItem('profps_name');
+            if (savedName) {
+                myProfile.name = savedName;
+                document.getElementById('my-name').value = savedName;
+            } else {
+                myProfile.name = 'مقاتل ' + Math.floor(Math.random() * 1000);
+                document.getElementById('my-name').value = myProfile.name;
+            }
+
             globalRef = ref(db, 'global_lobby');
             myGlobalRef = ref(db, 'global_lobby/' + myId);
             myInvitesRef = ref(db, 'invites/' + myId);
@@ -440,12 +410,15 @@
             onDisconnect(myGlobalRef).remove();
             onDisconnect(myInvitesRef).remove();
 
+            // 🟢 إظهار كل اللاعبين المتصلين باستثنائك أنت 🟢
             onValue(globalRef, (snap) => {
                 const players = snap.val() || {};
                 const listEl = document.getElementById('global-players-list');
                 listEl.innerHTML = '';
                 for(let id in players) {
-                    if(id === myId) continue;
+                    // هذا الشرط يمنع ظهور حسابك في القائمة
+                    if (id === myId) continue; 
+                    
                     let p = players[id];
                     let isIdle = p.status === 'idle';
                     let statusText = isIdle ? '🟢 متاح' : '🔴 في لعبة';
@@ -477,8 +450,11 @@
 
             createMyOwnRoom();
 
+            // 🟢 حفظ أي تعديل يقوم به اللاعب على اسمه تلقائياً 🟢
             const updateMyProfile = () => {
                 myProfile.name = document.getElementById('my-name').value || 'مقاتل';
+                localStorage.setItem('profps_name', myProfile.name); // حفظ الاسم فوراً
+                
                 applyProfileToMesh(myLobbyMesh, myProfile);
                 update(myGlobalRef, { name: myProfile.name });
                 if(myPlayerRef) update(myPlayerRef, { profile: myProfile });
@@ -549,7 +525,10 @@
             if(actionsRef) off(actionsRef);
             
             for(let id in playersData) {
-                if(id !== myId && playersData[id].mesh) scene.remove(playersData[id].mesh);
+                if(id !== myId && playersData[id].mesh) {
+                    playersData[id].mesh.traverse(c => { if(c.isMesh) disposeObject(c); });
+                    scene.remove(playersData[id].mesh);
+                }
             }
             playersData = {};
         }
@@ -562,7 +541,7 @@
                     if(id === myId && id !== 'bot') { myTeam = data[id].team; continue; }
                     
                     if(!playersData[id]) {
-                        playersData[id] = { hp: data[id].hp, mesh: create3DCharacter(data[id].profile), lastShot: 0 };
+                        playersData[id] = { hp: data[id].hp, mesh: create3DCharacter(data[id].profile), lastShot: 0, hasInitPos: false };
                         if(scene) scene.add(playersData[id].mesh);
                     }
                     
@@ -572,13 +551,20 @@
                     applyProfileToMesh(playersData[id].mesh, data[id].profile);
 
                     if (data[id].pos && playersData[id].mesh) {
-                        playersData[id].mesh.position.set(data[id].pos.x, data[id].pos.y, data[id].pos.z);
-                        playersData[id].mesh.rotation.y = data[id].rot;
+                        playersData[id].targetPos = new THREE.Vector3(data[id].pos.x, data[id].pos.y, data[id].pos.z);
+                        playersData[id].targetRot = data[id].rot;
+                        
+                        if(!playersData[id].hasInitPos) {
+                            playersData[id].mesh.position.copy(playersData[id].targetPos);
+                            playersData[id].mesh.rotation.y = playersData[id].targetRot;
+                            playersData[id].hasInitPos = true;
+                        }
                     }
                 }
                 
                 for(let id in playersData) {
                     if(id !== 'bot' && !data[id] && id !== myId) {
+                        playersData[id].mesh.traverse(c => { if(c.isMesh) disposeObject(c); });
                         scene.remove(playersData[id].mesh);
                         delete playersData[id];
                     }
@@ -619,11 +605,13 @@
                 }
                 else if (action.type === 'HIT') {
                     if (action.victim === myId && myHp > 0) {
-                        myHp -= action.damage; updateHUD();
+                        myHp -= action.damage; 
+                        if(myHp < 0) myHp = 0; 
+                        updateHUD();
                         if(window.sfx && window.sfx.playDamage) window.sfx.playDamage();
                         update(myPlayerRef, { hp: myHp });
 
-                        if (myHp <= 0) {
+                        if (myHp === 0) {
                             push(actionsRef, { type: 'DEATH', killer: action.sender, victim: myId, hs: action.hs });
                             handleDeath();
                         }
@@ -636,7 +624,7 @@
                     
                     addKillFeedMsg(kName, vName, action.hs);
 
-                    if (isHost) {
+                    if (isHost && isPlaying) {
                         let deadTeam = action.victim === myId ? myTeam : playersData[action.victim]?.team;
                         if(deadTeam === 'A') aliveA--; else aliveB--;
                         checkRoundEnd();
@@ -734,6 +722,8 @@
             if(!isHost) return;
             update(myGlobalRef, { status: 'in-game' });
             
+            set(actionsRef, null);
+            
             const themeIdx = Math.floor(Math.random() * mapThemes.length);
             const mapArr = generateAdvancedMap(); buildMap(mapArr, themeIdx);
             
@@ -743,7 +733,10 @@
                 update(ref(db, 'rooms/' + currentRoomId + '/players/bot'), { team: 'B', hp: MAX_HP, profile: {name: 'روبوت'}, pos: {x:50, y:0, z:50}, rot: 0, isMoving: false });
             } else {
                 if(myTeam === 'A') aliveA++; else aliveB++;
-                for(let id in playersData) { if(playersData[id].team === 'A') aliveA++; else aliveB++; }
+                for(let id in playersData) { 
+                    if(id === 'bot') continue;
+                    if(playersData[id].team === 'A') aliveA++; else aliveB++; 
+                }
             }
 
             switchToGameScene(0, themeIdx); 
@@ -765,8 +758,15 @@
         }
 
         function buildMap(serverWalls, themeIdx) {
-            walls.forEach(w => scene.remove(w)); walls = [];
-            scene.remove(currentMapObjects); currentMapObjects = new THREE.Group();
+            walls.forEach(w => {
+                w.traverse(c => { if(c.isMesh) disposeObject(c); });
+                scene.remove(w);
+            });
+            walls = [];
+            
+            currentMapObjects.traverse(c => { if(c.isMesh) disposeObject(c); });
+            scene.remove(currentMapObjects); 
+            currentMapObjects = new THREE.Group();
             
             const theme = mapThemes[themeIdx];
             const solidFloor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshLambertMaterial({ color: theme.floor }));
@@ -883,6 +883,7 @@
             setTimeout(() => { if(isPlaying) msg.style.display = 'none'; }, 2000);
             
             myHp = MAX_HP; isHealing = false; myAmmo = MAX_AMMO; isReloading = false; 
+            if (myPlayerRef) update(myPlayerRef, { hp: MAX_HP }); 
             
             glooCount = MAX_GLOO; isGlooReloading = false; updateGlooUI();
             
@@ -902,7 +903,7 @@
         }
 
         function checkRoundEnd() {
-            if (!isHost) return;
+            if (!isHost || !isPlaying) return; 
             if (aliveA <= 0 || aliveB <= 0) {
                 let winnerTeam = aliveA > 0 ? 'A' : 'B';
                 if (winnerTeam === 'A') teamScoreA++; else teamScoreB++;
@@ -935,7 +936,11 @@
             document.getElementById('lobby-ui').style.display = 'block';
             document.getElementById('msg-overlay').style.display = 'none';
             
-            lobbyEnv.visible = true; scene.remove(currentMapObjects); 
+            lobbyEnv.visible = true; 
+            
+            currentMapObjects.traverse(c => { if(c.isMesh) disposeObject(c); });
+            scene.remove(currentMapObjects); 
+            
             scene.background = new THREE.Color(0x87CEEB); scene.fog = new THREE.FogExp2(0x87CEEB, 0.0025);
             ambientLight.intensity = 0.6; dirLight.intensity = 0.5; 
             
@@ -954,9 +959,12 @@
             currentMapObjects.add(gloo); walls.push(gloo);
             
             setTimeout(() => {
-                currentMapObjects.remove(gloo);
-                const index = walls.indexOf(gloo);
-                if (index > -1) walls.splice(index, 1);
+                if(currentMapObjects.children.includes(gloo)) {
+                    gloo.traverse(c => { if(c.isMesh) disposeObject(c); });
+                    currentMapObjects.remove(gloo);
+                    const index = walls.indexOf(gloo);
+                    if (index > -1) walls.splice(index, 1);
+                }
             }, 15000);
         }
 
@@ -1071,16 +1079,23 @@
             else if (hitPlayerId === 'bot' && playersData['bot'].hp > 0) {
                 playersData['bot'].hp -= dmgAmount;
                 if (playersData['bot'].hp <= 0) {
+                    playersData['bot'].hp = 0; 
                     addKillFeedMsg(myProfile.name, 'روبوت', isHeadshot);
                     playersData['bot'].mesh.visible = false; 
-                    if(isHost) { aliveB--; checkRoundEnd(); }
+                    if(isHost && isPlaying) { aliveB--; checkRoundEnd(); }
                 }
             }
         }
 
         function drawBullet(start, end) {
-            const b = new THREE.Line(new THREE.BufferGeometry().setFromPoints([start, end]), new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 }));
-            scene.add(b); setTimeout(() => { scene.remove(b); }, 40);
+            const bMat = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 });
+            const bGeo = new THREE.BufferGeometry().setFromPoints([start, end]);
+            const b = new THREE.Line(bGeo, bMat);
+            scene.add(b); 
+            setTimeout(() => { 
+                disposeObject(b);
+                scene.remove(b); 
+            }, 40);
         }
 
         function showFloatingDamage(amount, pos3D) {
@@ -1296,7 +1311,7 @@
                     let camDir = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
                     
                     let checkTargets = [];
-                    if (gameMode === 'bot' && playersData['bot'].hp > 0 && playersData['bot'].mesh.visible) {
+                    if (gameMode === 'bot' && playersData['bot'] && playersData['bot'].hp > 0 && playersData['bot'].mesh.visible) {
                         checkTargets.push(playersData['bot'].mesh.position.clone().setY(5));
                     } else if (gameMode !== 'bot') {
                         for(let id in playersData) {
@@ -1336,7 +1351,7 @@
                     lastNetworkUpdate = time;
                 }
 
-                if (gameMode === 'bot' && isHost && playersData['bot'].hp > 0) {
+                if (gameMode === 'bot' && isHost && playersData['bot'] && playersData['bot'].hp > 0) {
                     const bot = playersData['bot']; const botPos = bot.mesh.position; const headPos = botPos.clone().setY(6);
                     const distToPlayer = headPos.distanceTo(camera.position); const dirToPlayer = camera.position.clone().sub(headPos).normalize();
                     
@@ -1368,7 +1383,6 @@
                         if (!bot.lastShoot || time - bot.lastShoot > 600) { 
                             bot.lastShoot = time; 
                             push(actionsRef, { type: 'BULLET_FIRED', start: {x:botPos.x, y:4, z:botPos.z}, end: {x:camera.position.x, y:camera.position.y, z:camera.position.z}, sender: 'bot' });
-                            
                             push(actionsRef, { type: 'HIT', victim: myId, damage: 15, headshot: false, sender: 'bot' });
                         }
                     }
@@ -1381,7 +1395,19 @@
                 if(myLobbyMesh) animateCharacter(myLobbyMesh, false, time);
             }
 
-            for(let id in playersData) if (playersData[id].mesh && id !== 'bot') animateCharacter(playersData[id].mesh, false, time);
+            for(let id in playersData) { 
+                if (id !== myId && playersData[id].mesh && playersData[id].targetPos) {
+                    playersData[id].mesh.position.lerp(playersData[id].targetPos, 0.15);
+                    
+                    let diffYaw = playersData[id].targetRot - playersData[id].mesh.rotation.y;
+                    while(diffYaw < -Math.PI) diffYaw += Math.PI*2; 
+                    while(diffYaw > Math.PI) diffYaw -= Math.PI*2;
+                    playersData[id].mesh.rotation.y += diffYaw * 0.15;
+                }
+                if (playersData[id].mesh && id !== 'bot') {
+                    animateCharacter(playersData[id].mesh, false, time);
+                }
+            }
 
             renderer.render(scene, camera);
         }
