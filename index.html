@@ -7,11 +7,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-title" content="Pro FPS Firebase">
+    <meta name="apple-mobile-web-app-title" content="Pro FPS 3D">
     
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111' rx='20'/%3E%3Ccircle cx='50' cy='50' r='35' stroke='%23ffaa00' stroke-width='5' fill='none'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ff0000'/%3E%3Cline x1='50' y1='5' x2='50' y2='25' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='50' y1='95' x2='50' y2='75' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='5' y1='50' x2='25' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='95' y1='50' x2='75' y2='50' stroke='%2300aaff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
 
-    <title>Pro FPS - Advanced Gameplay</title>
+    <title>Pro FPS - 3D Weapon Update</title>
     <style>
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; -webkit-user-select: none;}
@@ -102,12 +102,20 @@
         .kill-msg .killer { color: #00aaff; } .kill-msg .victim { color: #ff4444; } .kill-msg .hs { color: #ffaa00; margin-right: 5px; font-size: 1.1em; }
         @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; display: none; } }
     </style>
+
+    <!-- تم إضافة مسار GLTFLoader هنا -->
+    <script type="importmap"> { 
+        "imports": { 
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        } 
+    } </script>
 </head>
 <body>
 
     <div id="start-screen">
         <h1 style="color: #00aaff; text-shadow: 0 0 15px #00aaff; margin-bottom: 5px;">PRO FPS</h1>
-        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">التحديث الاحترافي V4 🚀</p>
+        <p style="color: #aaa; margin-bottom: 40px; font-size: 18px;">سلاح 3D (AK47) 🔥</p>
         <button class="btn-start-fs" id="btn-fs">دخول اللعبة</button>
     </div>
 
@@ -186,7 +194,6 @@
         </div>
 
         <div id="btn-heal" class="btn-game">💉<br><small>علاج</small></div>
-        <!-- تم تعديل زر الثلجة ليعرض الرقم -->
         <div id="btn-gloo" class="btn-game">🧊<br><small>3</small></div>
         <div id="btn-shoot" class="btn-game">🔥<br>نار</div>
         
@@ -234,10 +241,12 @@
         });
     </script>
 
+    <!-- تضمين مكتبات Firebase V10 Modular و GLTFLoader -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getDatabase, ref, set, update, push, onValue, onChildAdded, onDisconnect, off, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
         import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
         // 🟢 إعدادات Firebase الخاصة بك 🟢
         const firebaseConfig = {
@@ -293,7 +302,6 @@
         const MAX_AMMO = 30;
         let myAmmo = MAX_AMMO, isReloading = false;
 
-        // نظام الثلج الجديد
         const MAX_GLOO = 3;
         let glooCount = MAX_GLOO;
         let isGlooReloading = false;
@@ -568,9 +576,8 @@
             ambientLight = new THREE.AmbientLight(0xffffff, 0.6); scene.add(ambientLight);
             dirLight = new THREE.DirectionalLight(0xffffff, 0.5); dirLight.position.set(50, 100, 50); scene.add(dirLight);
 
-            // تم تخفيف الضبابية هنا لتصبح الخرائط واضحة واحترافية!
             scene.background = new THREE.Color(0x87CEEB); 
-            scene.fog = new THREE.FogExp2(0x87CEEB, 0.0025); // تغيير القيمة من 0.015 إلى 0.0025
+            scene.fog = new THREE.FogExp2(0x87CEEB, 0.0025);
             
             const grass = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshBasicMaterial({color: 0x228B22}));
             grass.rotation.x = -Math.PI/2; lobbyEnv.add(grass);
@@ -583,10 +590,38 @@
             }
             scene.add(lobbyEnv);
             
-            gunMesh = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 1.5), new THREE.MeshLambertMaterial({ color: 0x222222 }));
-            gunMesh.position.set(0.4, -0.4, -1); camera.add(gunMesh);
-            const muzzle = new THREE.Object3D(); muzzle.position.set(0, 0, -0.8); muzzle.name = "muzzle";
-            gunMesh.add(muzzle); gunMesh.visible = false;
+            // ---------------------------------------------------------
+            // إنشاء مجموعة تحتوي على السلاح (الـ AK47)
+            // ---------------------------------------------------------
+            gunMesh = new THREE.Group();
+            
+            // ضبط مكان السلاح ليكون يمين الشاشة كما في ألعاب الـ FPS
+            gunMesh.position.set(0.3, -0.3, -1); 
+            camera.add(gunMesh);
+            gunMesh.visible = false;
+
+            // تحديد نقطة خروج الرصاصة لتكون من فوهة السلاح
+            const muzzle = new THREE.Object3D(); 
+            muzzle.position.set(0, 0.1, -1.5); 
+            muzzle.name = "muzzle";
+            gunMesh.add(muzzle);
+
+            // تحميل الـ AK47.glb باستخدام GLTFLoader
+            const loader = new GLTFLoader();
+            loader.load('AK47.compressed.glb', function (gltf) {
+                const ak47 = gltf.scene;
+                
+                // قد تحتاج لتعديل هذه القيم (Scale) إذا كان السلاح يظهر كبيراً جداً أو صغيراً جداً
+                ak47.scale.set(0.1, 0.1, 0.1); 
+                
+                // تدوير السلاح ليكون موجهاً للأمام
+                ak47.rotation.y = Math.PI; 
+                
+                gunMesh.add(ak47);
+            }, undefined, function (error) {
+                console.error('يوجد خطأ في تحميل السلاح، تأكد من وضع ملف AK47.glb بجانب ملف HTML:', error);
+            });
+            // ---------------------------------------------------------
 
             myLobbyMesh = createMinecraftCharacter(myProfile); scene.add(myLobbyMesh);
 
@@ -635,6 +670,7 @@
             const armL = createPart(new THREE.BoxGeometry(1, 3, 1), skinMat, "armL", -1.5, 5.5); armL.position.x = -1.5;
             const armR = createPart(new THREE.BoxGeometry(1, 3, 1), skinMat, "armR", -1.5, 5.5); armR.position.x = 1.5;
             
+            // إضافة السلاح البدائي للشخصيات الأخرى
             const charGun = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 2), new THREE.MeshLambertMaterial({ color: 0x111 }));
             charGun.position.set(0, -1.5, -1); armR.children[0].add(charGun); 
 
@@ -809,13 +845,11 @@
             
             myHp = MAX_HP; isHealing = false; myAmmo = MAX_AMMO; isReloading = false; 
             
-            // تهيئة عدد الثلجات
             glooCount = MAX_GLOO; isGlooReloading = false; updateGlooUI();
             
             updateHUD(); updateWeaponUI();
             
             lobbyEnv.visible = false;
-            // إظهار الخرائط بوضوح (تخفيف الضباب)
             scene.background = new THREE.Color(theme.bg); scene.fog = new THREE.FogExp2(theme.bg, 0.0025);
             ambientLight.intensity = 0.6; dirLight.intensity = 0.7; 
 
@@ -873,7 +907,6 @@
 
         function placeGlooWallLocally(pos, rot) {
             if(window.sfx && window.sfx.playGloo) window.sfx.playGloo();
-            // جعل الثلجة أكثر سمكاً لمنع الاختراق
             const geo = new THREE.BoxGeometry(10, 10, 2);
             const mat = new THREE.MeshBasicMaterial({ color: 0x55ffff, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
             const gloo = new THREE.Mesh(geo, mat);
@@ -916,7 +949,8 @@
             if (isReloading || myAmmo === MAX_AMMO || myHp <= 0) return;
             isReloading = true; updateWeaponUI();
             if(window.sfx && window.sfx.playReload) window.sfx.playReload();
-            gunMesh.rotation.x = -Math.PI / 4; 
+            // تدوير بسيط لبيان إعادة التلقيم حتى لو كان 3D
+            gunMesh.rotation.x = -Math.PI / 8; 
             setTimeout(() => {
                 myAmmo = MAX_AMMO; isReloading = false;
                 if(gunMesh) gunMesh.rotation.x = 0; updateWeaponUI();
@@ -980,7 +1014,6 @@
 
             drawBullet(startPos, endPos); 
 
-            // إرسال الضربة عبر Firebase Actions
             push(actionsRef, { type: 'BULLET_FIRED', start: {x:startPos.x,y:startPos.y,z:startPos.z}, end: {x:endPos.x,y:endPos.y,z:endPos.z}, sender: myId });
             if(hitPlayerId && hitPlayerId !== 'bot') {
                 push(actionsRef, { type: 'HIT', victim: hitPlayerId, damage: dmgAmount, headshot: isHeadshot, sender: myId });
@@ -1092,7 +1125,6 @@
             document.getElementById('btn-shoot').addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
             document.getElementById('weapon-ui').addEventListener('touchstart', (e) => { e.preventDefault(); reloadWeapon(); });
             
-            // نظام الثلجة المحدث بمحدودية العدد ونظام الشحن
             document.getElementById('btn-gloo').addEventListener('touchstart', (e) => {
                 e.preventDefault(); 
                 if (!isPlaying || myHp <= 0 || glooCount <= 0 || isGlooReloading) return;
@@ -1101,7 +1133,6 @@
                 updateGlooUI();
 
                 const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); dir.y = 0; dir.normalize();
-                // وضع الثلجة بمسافة أبعد لتجنب الرسبنة داخلها (8 بدلا من 6)
                 const pos = camera.position.clone().add(dir.multiplyScalar(8)); pos.y = 4; 
                 
                 placeGlooWallLocally(pos, yaw);
@@ -1110,12 +1141,11 @@
                 if (glooCount === 0) {
                     isGlooReloading = true;
                     updateGlooUI();
-                    // انتظر 10 ثواني لكي تشحن الثلجات
                     setTimeout(() => {
                         glooCount = MAX_GLOO;
                         isGlooReloading = false;
                         updateGlooUI();
-                        if(window.sfx && window.sfx.playReload) window.sfx.playReload(); // تشغيل صوت كإشعار للتحميل
+                        if(window.sfx && window.sfx.playReload) window.sfx.playReload();
                     }, 10000);
                 }
             });
@@ -1181,7 +1211,7 @@
                         if (healTime >= HEAL_DURATION) {
                             isHealing = false; document.getElementById('heal-progress-container').style.display = 'none';
                             myHp = Math.min(MAX_HP, myHp + 75); updateHUD(); showFloatingDamage('+75', camera.position);
-                            update(myPlayerRef, { hp: myHp }); // حفظ الهيل في الداتابيز
+                            update(myPlayerRef, { hp: myHp }); 
                             if(window.sfx && window.sfx.playHeal) window.sfx.playHeal();
                         }
                     }
@@ -1202,7 +1232,6 @@
                         const speedMulti = Math.min(1, Math.sqrt(moveX*moveX + moveZ*moveZ));
 
                         const dirX = new THREE.Vector3(dir.x, 0, 0).normalize();
-                        // نظام منع التعليق: إرجاع نقطة فحص الشعاع إلى الخلف قليلاً لعدم اختراق الثلجة
                         const backOffX = new THREE.Vector3(-dirX.x, 0, 0).multiplyScalar(1.5);
                         if (new THREE.Raycaster(camera.position.clone().add(backOffX), dirX, 0, 3.5).intersectObjects(walls, true).length === 0) {
                             camera.position.x += dir.x * moveSpeed * speedMulti;
@@ -1257,7 +1286,6 @@
                     }
                 }
 
-                // إرسال الحركة لـ Firebase (بمعدل 20 مرة في الثانية لتخفيف الضغط)
                 if (time - lastNetworkUpdate > 50) {
                     update(myPlayerRef, { pos: { x: camera.position.x, y: 0, z: camera.position.z }, rot: yaw, isMoving: isMoving });
                     lastNetworkUpdate = time;
@@ -1287,7 +1315,6 @@
                             isBotMoving = true;
                         }
                         
-                        // تحديث حركة الروبوت في الداتابيز ليراها الجميع
                         if(time - bot.lastMoveUpdate > 50 || !bot.lastMoveUpdate) {
                             update(ref(db, 'rooms/' + currentRoomId + '/players/bot'), { pos: {x: botPos.x, y: botPos.y, z: botPos.z}, rot: bot.mesh.rotation.y, isMoving: isBotMoving });
                             bot.lastMoveUpdate = time;
